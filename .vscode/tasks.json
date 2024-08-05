@@ -1,0 +1,22 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build",
+            "type": "shell",
+            "command": "gcc",
+            "args": [
+                "${workspaceFolder}/src/*.c",
+                "-l",
+                "SDL2",
+                "-lm",
+                "-o",
+                "${workspaceFolder}/bin/raycaster"
+            ],
+            "problemMatcher": [],
+            "group": {
+                "kind": "build"
+            }
+        }
+    ]
+}
