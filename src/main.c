@@ -33,23 +33,29 @@ void draw(Player *player, SDL_Renderer *renderer) {
     double rayAngle = player->angle - 1.39626 / 2;
     vec2 rayPos = {0, 0};
     for (int i = 0; i < WINDOW_WIDTH; i++) {
+        if (rayAngle < 0)
+            rayAngle += 2*PI;
+        if (rayAngle > 2*PI)
+            rayAngle -= 2*PI;
 
         //horizontal check
-        vec2 rayStep = {0, 0};
+        vec2 rayStep = {10, 10};
         vec2 dist = {0, 0};
+        if (i == WINDOW_WIDTH / 2)
+            printf("rayAngle = %f playerAngle = %f\n", rayAngle, player->angle);
         double aTan = -1 / tan(rayAngle);
         if (rayAngle > PI) {
-            rayPos.y = (int)player->pos.y - 0.0001;
+            rayPos.y = (int)player->pos.y - 0.001;
             rayPos.x = (player->pos.y - rayPos.y) * aTan + player->pos.x;
-            rayStep.y = aTan;
-            rayStep.x = -1;
+            rayStep.y = -1;
+            rayStep.x = aTan;
         } else {
             rayPos.y = (int)player->pos.y + 1;
             rayPos.x = (player->pos.y - rayPos.y) * aTan + player->pos.x;
-            rayStep.y = -aTan;
-            rayStep.x = 1;
+            rayStep.y = 1;
+            rayStep.x = -aTan;
         }
-        printf("horizontal step %f %f\n", rayStep.x, rayStep.y);
+        // printf("horizontal step %f %f\n", rayStep.x, rayStep.y);
         int hit = 0;
         while (rayPos.x > 0 && rayPos.x < MAP_WIDTH && rayPos.y > 0 && rayPos.y < MAP_HEIGHT) {
             hit = map[(int)rayPos.y][(int)rayPos.x];
@@ -59,6 +65,7 @@ void draw(Player *player, SDL_Renderer *renderer) {
                 break;
             rayPos = vec2_add(&rayPos, &rayStep);
         }
+        vec2 tmp = rayPos;
         dist.x = vec2_dist(&rayPos, &player->pos);
         if (hit && i == WINDOW_WIDTH / 2)
             printf("d: %f\n", dist.x);
@@ -77,19 +84,21 @@ void draw(Player *player, SDL_Renderer *renderer) {
             rayStep.x = 1;
         }
 
-        printf("vertiacal step %f %f\n", rayStep.x, rayStep.y);
+        if (i == WINDOW_WIDTH / 2)
+            printf("here x: %f y: %f\n", tmp.x, tmp.y);
+        // printf("vertiacal step %f %f\n", rayStep.x, rayStep.y);
         hit = 0;
         while (rayPos.x > 0 && rayPos.x < MAP_WIDTH && rayPos.y > 0 && rayPos.y < MAP_HEIGHT) {
             hit = map[(int)rayPos.y][(int)rayPos.x];
-            if (hit && i == WINDOW_WIDTH / 2)
-                printf("vertical hit at x: %f y: %f\t", rayPos.x, rayPos.y);
+            // if (hit && i == WINDOW_WIDTH / 2)
+                // printf("vertical hit at x: %f y: %f\t", rayPos.x, rayPos.y);
             if (hit)
                 break;
             rayPos = vec2_add(&rayPos, &rayStep);
         }
         dist.y = vec2_dist(&rayPos, &player->pos);
-        if (hit && i == WINDOW_WIDTH / 2)
-            printf("d: %f\n", dist.y);
+        // if (hit && i == WINDOW_WIDTH / 2)
+            // printf("d: %f\n", dist.y);
 
         // double minDist = dist.x < dist.y ? dist.x : dist.y;
         // int wall = 0;
@@ -100,19 +109,18 @@ void draw(Player *player, SDL_Renderer *renderer) {
         // }
 
 
-        // dist *= cos(rayAngle - player->angle);
         int red = 0;
         int green = 0;
         int blue = 0;
         int wallHeight = 0;
 
         if (dist.x < dist.y) { 
-            wallHeight = WINDOW_HEIGHT / dist.x;
+            wallHeight = WINDOW_HEIGHT / (dist.x * cos(player->angle - rayAngle)); 
             if (i == WINDOW_WIDTH / 2)
                 blue = 255;
             red = 255 / dist.x;
         } else {
-            wallHeight = WINDOW_HEIGHT / dist.y;
+            wallHeight = WINDOW_HEIGHT / (dist.y * cos(player->angle - rayAngle));
             if (i == WINDOW_WIDTH / 2)
                 blue = 255;
             green = 255 / dist.y;
@@ -131,10 +139,20 @@ void draw(Player *player, SDL_Renderer *renderer) {
         window_draw_line(renderer, i, 0, 1, (WINDOW_HEIGHT - wallHeight) / 2, 0, 48, 128);
         window_draw_line(renderer, i, (WINDOW_HEIGHT - wallHeight) / 2, 1, wallHeight, red, green, blue);
         window_draw_line(renderer, i, (WINDOW_HEIGHT + wallHeight) / 2, 1, (WINDOW_HEIGHT - wallHeight), 64, 32, 64);
-        SDL_SetRenderDrawColor(renderer, red, green, blue, 255);
-        printf("here %f %f\n", rayPos.x * 32, rayPos.y * 32);
 
-        SDL_RenderDrawLine(renderer, player->pos.x * 32, player->pos.y * 32, (int)(rayPos.x * 32), (int)(rayPos.y * 32));
+        if (dist.x < dist.y) {
+            SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+            SDL_RenderDrawLine(renderer, player->pos.x * 32, player->pos.y * 32, tmp.x * 32, tmp.y * 32);
+        } else {
+            SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
+            SDL_RenderDrawLine(renderer, player->pos.x * 32, player->pos.y * 32, rayPos.x * 32, rayPos.y * 32);
+        }
+        // if (i == WINDOW_HEIGHT) {
+        //     SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+        //     SDL_RenderDrawLine(renderer, player->pos.x * 32, player->pos.y * 32, tmp.x * 32, tmp.y * 32);
+        //     // SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
+        //     // SDL_RenderDrawLine(renderer, player->pos.x * 32, player->pos.y * 32, (int)(rayPos.x * 32), (int)(rayPos.y * 32));
+        // }
         // printf("player x: %f y: %f a: %f\n", player->pos.x, player->pos.y, player->angle);
 
         rayAngle += angleStep;
