@@ -16,21 +16,35 @@
 
 int map[MAP_HEIGHT][MAP_WIDTH] = 
 {
-    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-    {1, 0, 1, 1, 0, 0, 1, 1, 0, 1},
-    {1, 0, 1, 0, 0, 0, 0, 1, 0, 1},
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-    {1, 0, 1, 0, 0, 0, 0, 1, 0, 1},
-    {1, 0, 1, 1, 0, 0, 1, 1, 0, 1},
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+    {5, 5, 5, 7, 7, 7, 7, 5, 5, 5},
+    {3, 0, 0, 0, 0, 0, 0, 0, 0, 6},
+    {3, 0, 1, 1, 0, 0, 1, 2, 0, 6},
+    {3, 0, 1, 0, 0, 0, 0, 3, 0, 6},
+    {3, 0, 0, 0, 0, 0, 0, 0, 0, 6},
+    {2, 0, 0, 0, 0, 0, 0, 0, 0, 6},
+    {2, 0, 2, 0, 0, 0, 0, 3, 0, 6},
+    {2, 0, 2, 2, 0, 0, 3, 3, 0, 6},
+    {2, 0, 0, 0, 0, 0, 0, 0, 0, 6},
+    {2, 1, 1, 1, 1, 4, 4, 4, 4, 4},
 };
 
+// 0 - no wall
+// 1 - red wall
+// 2 - green wall
+// 3 - blue wall
+// 4 - yellow
+// 5 - cyan
+// 6 - purple
+// 7 - white
+// 8 - black
+
+double degToRad(double angle) {
+    return angle * PI / 180;
+}
+
 void draw(Player *player, SDL_Renderer *renderer) {
-    double angleStep = 1.39626 / WINDOW_WIDTH;
-    double rayAngle = player->angle - 1.39626 / 2;
+    double angleStep = degToRad(player->FOV) / WINDOW_WIDTH;
+    double rayAngle = player->angle - degToRad(player->FOV) / 2;
     vec2 rayPos = {0, 0};
     for (int i = 0; i < WINDOW_WIDTH; i++) {
         if (rayAngle < 0)
@@ -38,14 +52,13 @@ void draw(Player *player, SDL_Renderer *renderer) {
         if (rayAngle > 2*PI)
             rayAngle -= 2*PI;
 
-        //horizontal check
         vec2 rayStep = {10, 10};
         vec2 dist = {0, 0};
-        if (i == WINDOW_WIDTH / 2)
-            printf("rayAngle = %f playerAngle = %f\n", rayAngle, player->angle);
+        vec2 wallColor = {0, 0};
         double aTan = -1 / tan(rayAngle);
+
         if (rayAngle > PI) {
-            rayPos.y = (int)player->pos.y - 0.001;
+            rayPos.y = (int)player->pos.y - 0.001; // i have no clue what the purpose of this number
             rayPos.x = (player->pos.y - rayPos.y) * aTan + player->pos.x;
             rayStep.y = -1;
             rayStep.x = aTan;
@@ -55,23 +68,17 @@ void draw(Player *player, SDL_Renderer *renderer) {
             rayStep.y = 1;
             rayStep.x = -aTan;
         }
-        // printf("horizontal step %f %f\n", rayStep.x, rayStep.y);
-        int hit = 0;
+
         while (rayPos.x > 0 && rayPos.x < MAP_WIDTH && rayPos.y > 0 && rayPos.y < MAP_HEIGHT) {
-            hit = map[(int)rayPos.y][(int)rayPos.x];
-            if (hit && i == WINDOW_WIDTH / 2)
-                printf("horizontal hit at x: %f y: %f\t", rayPos.x, rayPos.y);
-            if (hit)
+            wallColor.x = map[(int)rayPos.y][(int)rayPos.x];
+            if (wallColor.x)
                 break;
             rayPos = vec2_add(&rayPos, &rayStep);
         }
         vec2 tmp = rayPos;
         dist.x = vec2_dist(&rayPos, &player->pos);
-        if (hit && i == WINDOW_WIDTH / 2)
-            printf("d: %f\n", dist.x);
 
-        //vertival check
-        double nTan  = -tan(rayAngle);
+        double nTan = -tan(rayAngle);
         if (rayAngle > PI/2 && rayAngle < 3*PI/2) {
             rayPos.x = (int)player->pos.x - 0.0001;
             rayPos.y = (player->pos.x - rayPos.x) * nTan + player->pos.y;
@@ -84,76 +91,74 @@ void draw(Player *player, SDL_Renderer *renderer) {
             rayStep.x = 1;
         }
 
-        if (i == WINDOW_WIDTH / 2)
-            printf("here x: %f y: %f\n", tmp.x, tmp.y);
-        // printf("vertiacal step %f %f\n", rayStep.x, rayStep.y);
-        hit = 0;
         while (rayPos.x > 0 && rayPos.x < MAP_WIDTH && rayPos.y > 0 && rayPos.y < MAP_HEIGHT) {
-            hit = map[(int)rayPos.y][(int)rayPos.x];
-            // if (hit && i == WINDOW_WIDTH / 2)
-                // printf("vertical hit at x: %f y: %f\t", rayPos.x, rayPos.y);
-            if (hit)
+            wallColor.y = map[(int)rayPos.y][(int)rayPos.x];
+            if (wallColor.y)
                 break;
             rayPos = vec2_add(&rayPos, &rayStep);
         }
         dist.y = vec2_dist(&rayPos, &player->pos);
-        // if (hit && i == WINDOW_WIDTH / 2)
-            // printf("d: %f\n", dist.y);
-
-        // double minDist = dist.x < dist.y ? dist.x : dist.y;
-        // int wall = 0;
-        // vec2 step = {cos(rayAngle) / 1024, sin(rayAngle) / 1024};
-        // while (!wall) {
-        //     rayPos = vec2_add(&rayPos, &step);
-        //     wall = map[(int)rayPos.x][(int)rayPos.y];
-        // }
 
 
-        int red = 0;
-        int green = 0;
-        int blue = 0;
         int wallHeight = 0;
 
-        if (dist.x < dist.y) { 
-            wallHeight = WINDOW_HEIGHT / (dist.x * cos(player->angle - rayAngle)); 
-            if (i == WINDOW_WIDTH / 2)
-                blue = 255;
-            red = 255 / dist.x;
-        } else {
-            wallHeight = WINDOW_HEIGHT / (dist.y * cos(player->angle - rayAngle));
-            if (i == WINDOW_WIDTH / 2)
-                blue = 255;
-            green = 255 / dist.y;
+        double minDist = dist.x;
+        int closestWallColor = wallColor.x;
+        if (dist.x > dist.y) {
+            minDist = dist.y;
+            closestWallColor = wallColor.y;
         }
+        minDist *= cos(player->angle - rayAngle);
+
+        int red = 0, green = 0, blue = 0;
+        switch(closestWallColor) {
+            case 1:
+                red = 255;
+                break;
+            case 2:
+                green = 255;
+                break;
+            case 3:
+                blue = 255;
+                break;
+            case 4:
+                red = 255;
+                green = 255;
+                break;
+            case 5:
+                green = 255;
+                blue = 255;
+                break;
+            case 6:
+                blue = 255;
+                red = 255;
+                break;
+            case 7:
+                red = 255;
+                green = 255;
+                blue = 255;
+                break;
+        }
+        
+        red = red / minDist;
+        green = green / minDist;
+        blue = blue / minDist;
+
+        wallHeight = WINDOW_HEIGHT / minDist; 
         if (wallHeight > WINDOW_HEIGHT)
             wallHeight = WINDOW_HEIGHT;
-
-        // int red = 192 / minDist;
-        // if (red > 192)
-        //     red = 192;
-
-        // int green = 96 / minDist;
-        // if (green > 96)
-        //     green = 96;
 
         window_draw_line(renderer, i, 0, 1, (WINDOW_HEIGHT - wallHeight) / 2, 0, 48, 128);
         window_draw_line(renderer, i, (WINDOW_HEIGHT - wallHeight) / 2, 1, wallHeight, red, green, blue);
         window_draw_line(renderer, i, (WINDOW_HEIGHT + wallHeight) / 2, 1, (WINDOW_HEIGHT - wallHeight), 64, 32, 64);
 
         if (dist.x < dist.y) {
-            SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+            SDL_SetRenderDrawColor(renderer, red, green, blue, 255);
             SDL_RenderDrawLine(renderer, player->pos.x * 32, player->pos.y * 32, tmp.x * 32, tmp.y * 32);
         } else {
-            SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
+            SDL_SetRenderDrawColor(renderer, red, green, blue, 255);
             SDL_RenderDrawLine(renderer, player->pos.x * 32, player->pos.y * 32, rayPos.x * 32, rayPos.y * 32);
         }
-        // if (i == WINDOW_HEIGHT) {
-        //     SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-        //     SDL_RenderDrawLine(renderer, player->pos.x * 32, player->pos.y * 32, tmp.x * 32, tmp.y * 32);
-        //     // SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
-        //     // SDL_RenderDrawLine(renderer, player->pos.x * 32, player->pos.y * 32, (int)(rayPos.x * 32), (int)(rayPos.y * 32));
-        // }
-        // printf("player x: %f y: %f a: %f\n", player->pos.x, player->pos.y, player->angle);
 
         rayAngle += angleStep;
     }
@@ -184,7 +189,7 @@ int main() {
     SDL_Renderer *renderer = NULL;
     window_initialize(&window, &renderer);
     window_clear(renderer);
-    Player player = {{5, 5}, 0, {0.1, 0.05}, 80};
+    Player player = {{5, 5}, 0, {0.1, 0.05}, 90};
     bool is_running = true;
 
     while (is_running) {
