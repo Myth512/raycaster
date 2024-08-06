@@ -9,6 +9,7 @@ typedef struct {
     vec2 pos;
     double angle;
     vec2 speed;
+    int FOV;
 } Player;
 
 void player_rotate(Player *player, int direction);
