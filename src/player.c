@@ -2,8 +2,10 @@
 
 void player_rotate(Player *player, int direction) {
     player->angle += player->speed.y * direction;
-    if (player->angle > 2*PI || player->angle < 0)
-        player->angle = fmod(player->angle, 2*PI);
+    if (player->angle > 2*PI)
+        player->angle -= 2*PI;
+    if (player->angle < 0)
+        player->angle += 2*PI;
 }
 
 void player_move(Player *player, int direction) {
