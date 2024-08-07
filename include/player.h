@@ -8,14 +8,12 @@
 typedef struct {
     vec2 pos;
     double angle;
-    vec2 speed;
-    int FOV;
     int moveDirection;
     int turnDirection;
 } Player;
 
-void player_rotate(Player *player);
+void player_rotate(Player *player, double delta_time);
 
-void player_move(Player *player);
+void player_move(Player *player, double delta_time);
 
 #endif

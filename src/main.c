@@ -5,8 +5,8 @@ double degToRad(double angle) {
 }
 
 void draw(Player *player, SDL_Renderer *renderer) {
-    double angleStep = degToRad(player->FOV) / WINDOW_WIDTH;
-    double rayAngle = player->angle - degToRad(player->FOV) / 2;
+    double angleStep = degToRad(FOV) / WINDOW_WIDTH;
+    double rayAngle = player->angle - degToRad(FOV) / 2;
     vec2 rayPos = {0, 0};
     for (int i = 0; i < WINDOW_WIDTH; i++) {
         if (rayAngle < 0)
@@ -161,19 +161,27 @@ int main() {
     SDL_Window *window = NULL;
     SDL_Renderer *renderer = NULL;
     bool is_running = window_initialize(&window, &renderer);
+    Uint32 frame_start_time = 0, frame_end_time = 0, frame_time = 0;
     window_clear(renderer);
-    Player player = {{5, 5}, PI / 4, {0.001, 0.001}, 90};
+    Player player = {{5, 5}, PI / 4};
 
     while (is_running) {
+        frame_start_time = SDL_GetTicks();
+
         window_process_input(&is_running, &player);
-        player_move(&player);
-        player_rotate(&player);
+
+        player_move(&player, frame_time / 1000.0f);
+        player_rotate(&player, frame_time / 1000.0f);
+
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
         draw(&player, renderer);
         drawMiniMap(renderer);
         drawPlayer(renderer, &player);
         SDL_RenderPresent(renderer);
+
+        frame_end_time = SDL_GetTicks();
+        frame_time = frame_end_time - frame_start_time;
     }
     window_destroy(window, renderer);
 }

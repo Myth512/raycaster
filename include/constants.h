@@ -3,4 +3,9 @@
 #define MAP_WIDTH 10
 #define MAP_HEIGHT 10
 #define MINIMAP_SCALE 16
+#define FOV 70
+#define MOVING_SPEED 1
+#define TURNING_SPEED 1 
+#define TARGET_FPS 120
+#define TARGET_SLEEP_TIME 1000 / TARGET_FPS
 #define PI 3.14159265359
