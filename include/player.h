@@ -12,8 +12,8 @@ typedef struct {
     int turnDirection;
 } Player;
 
-void player_rotate(Player *player, double delta_time);
+void player_turn(Player *player, int direction, double delta_time);
 
-void player_move(Player *player, double delta_time);
+void player_move(Player *player, int direction, double delta_time);
 
 #endif

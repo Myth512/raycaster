@@ -6,5 +6,7 @@
 #include "constants.h"
 #include "vec2.h"
 #include "window.h"
+#include "render.h"
 #include "player.h"
-#include "map.h"
+#include "input.h"
+#include "update.h"
