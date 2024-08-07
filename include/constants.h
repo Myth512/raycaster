@@ -2,5 +2,5 @@
 #define WINDOW_HEIGHT 720
 #define MAP_WIDTH 10
 #define MAP_HEIGHT 10
+#define MINIMAP_SCALE 16
 #define PI 3.14159265359
-#define DEGREE 0.0174533

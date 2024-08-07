@@ -1,43 +1,5 @@
 #include "../include/include.h"
 
-// int map[MAP_HEIGHT][MAP_WIDTH] = 
-// {
-//     {1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-//     {1, 0, 0, 0, 1, 0, 0, 0, 0, 1},
-//     {1, 1, 1, 0, 1, 0, 1, 0, 0, 1},
-//     {1, 0, 1, 0, 1, 0, 0, 0, 0, 1},
-//     {1, 0, 1, 0, 1, 1, 1, 0, 1, 1},
-//     {1, 0, 1, 0, 0, 0, 0, 0, 0, 1},
-//     {1, 0, 0, 0, 1, 1, 1, 0, 1, 1},
-//     {1, 0, 1, 1, 1, 0, 0, 0, 0, 1},
-//     {1, 0, 1, 0, 0, 0, 0, 0, 0, 1},
-//     {1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-// };
-
-int map[MAP_HEIGHT][MAP_WIDTH] = 
-{
-    {5, 5, 5, 7, 7, 7, 7, 5, 5, 5},
-    {3, 0, 0, 0, 0, 0, 0, 0, 0, 6},
-    {3, 0, 1, 1, 0, 0, 1, 2, 0, 6},
-    {3, 0, 1, 0, 0, 0, 0, 3, 0, 6},
-    {3, 0, 0, 0, 0, 0, 0, 0, 0, 6},
-    {2, 0, 0, 0, 0, 0, 0, 0, 0, 6},
-    {2, 0, 2, 0, 0, 0, 0, 3, 0, 6},
-    {2, 0, 2, 2, 0, 0, 3, 3, 0, 6},
-    {2, 0, 0, 0, 0, 0, 0, 0, 0, 6},
-    {2, 1, 1, 1, 1, 4, 4, 4, 4, 4},
-};
-
-// 0 - no wall
-// 1 - red wall
-// 2 - green wall
-// 3 - blue wall
-// 4 - yellow
-// 5 - cyan
-// 6 - purple
-// 7 - white
-// 8 - black
-
 double degToRad(double angle) {
     return angle * PI / 180;
 }
@@ -52,13 +14,13 @@ void draw(Player *player, SDL_Renderer *renderer) {
         if (rayAngle > 2*PI)
             rayAngle -= 2*PI;
 
-        vec2 rayStep = {10, 10};
+        vec2 rayStep = {0, 0};
         vec2 dist = {0, 0};
         vec2 wallColor = {0, 0};
         double aTan = -1 / tan(rayAngle);
 
         if (rayAngle > PI) {
-            rayPos.y = (int)player->pos.y - 0.001; // i have no clue what the purpose of this number
+            rayPos.y = (int)player->pos.y - 0.001; // I have no clue what the purpose of this number
             rayPos.x = (player->pos.y - rayPos.y) * aTan + player->pos.x;
             rayStep.y = -1;
             rayStep.x = aTan;
@@ -69,11 +31,16 @@ void draw(Player *player, SDL_Renderer *renderer) {
             rayStep.x = -aTan;
         }
 
-        while (rayPos.x > 0 && rayPos.x < MAP_WIDTH && rayPos.y > 0 && rayPos.y < MAP_HEIGHT) {
+        if (rayPos.x > 0 && rayPos.x < MAP_WIDTH && rayPos.y > 0 && rayPos.y < MAP_HEIGHT)
             wallColor.x = map[(int)rayPos.y][(int)rayPos.x];
-            if (wallColor.x)
-                break;
+        while (!wallColor.x) {
             rayPos = vec2_add(&rayPos, &rayStep);
+            if (rayPos.x > 0 && rayPos.x < MAP_WIDTH && rayPos.y > 0 && rayPos.y < MAP_HEIGHT)
+                wallColor.x = map[(int)rayPos.y][(int)rayPos.x];
+            else {
+                rayPos = vec2_multiply(&rayPos, 10000);
+                break;
+            }
         }
         vec2 tmp = rayPos;
         dist.x = vec2_dist(&rayPos, &player->pos);
@@ -91,23 +58,26 @@ void draw(Player *player, SDL_Renderer *renderer) {
             rayStep.x = 1;
         }
 
-        while (rayPos.x > 0 && rayPos.x < MAP_WIDTH && rayPos.y > 0 && rayPos.y < MAP_HEIGHT) {
+        if (rayPos.x > 0 && rayPos.x < MAP_WIDTH && rayPos.y > 0 && rayPos.y < MAP_HEIGHT)
             wallColor.y = map[(int)rayPos.y][(int)rayPos.x];
-            if (wallColor.y)
-                break;
+        while (!wallColor.y) {
             rayPos = vec2_add(&rayPos, &rayStep);
+            if (rayPos.x > 0 && rayPos.x < MAP_WIDTH && rayPos.y > 0 && rayPos.y < MAP_HEIGHT)
+                wallColor.y = map[(int)rayPos.y][(int)rayPos.x];
+            else {
+                rayPos = vec2_multiply(&rayPos, 10000);
+                break;
+            }
         }
         dist.y = vec2_dist(&rayPos, &player->pos);
-
-
-        int wallHeight = 0;
 
         double minDist = dist.x;
         int closestWallColor = wallColor.x;
         if (dist.x > dist.y) {
             minDist = dist.y;
             closestWallColor = wallColor.y;
-        }
+        } else
+            rayPos = tmp;
         minDist *= cos(player->angle - rayAngle);
 
         int red = 0, green = 0, blue = 0;
@@ -141,10 +111,16 @@ void draw(Player *player, SDL_Renderer *renderer) {
         }
         
         red = red / minDist;
+        if (red > 255)
+            red = 255;
         green = green / minDist;
+        if (green > 255)
+            green = 255;
         blue = blue / minDist;
+        if (blue > 255)
+            blue = 255;
 
-        wallHeight = WINDOW_HEIGHT / minDist; 
+        int wallHeight = WINDOW_HEIGHT / minDist; 
         if (wallHeight > WINDOW_HEIGHT)
             wallHeight = WINDOW_HEIGHT;
 
@@ -152,12 +128,9 @@ void draw(Player *player, SDL_Renderer *renderer) {
         window_draw_line(renderer, i, (WINDOW_HEIGHT - wallHeight) / 2, 1, wallHeight, red, green, blue);
         window_draw_line(renderer, i, (WINDOW_HEIGHT + wallHeight) / 2, 1, (WINDOW_HEIGHT - wallHeight), 64, 32, 64);
 
-        if (dist.x < dist.y) {
+        if (rayPos.x > 0 && rayPos.x < MAP_WIDTH && rayPos.y > 0 && rayPos.y < MAP_HEIGHT) {
             SDL_SetRenderDrawColor(renderer, red, green, blue, 255);
-            SDL_RenderDrawLine(renderer, player->pos.x * 32, player->pos.y * 32, tmp.x * 32, tmp.y * 32);
-        } else {
-            SDL_SetRenderDrawColor(renderer, red, green, blue, 255);
-            SDL_RenderDrawLine(renderer, player->pos.x * 32, player->pos.y * 32, rayPos.x * 32, rayPos.y * 32);
+            SDL_RenderDrawLine(renderer, player->pos.x * MINIMAP_SCALE, player->pos.y * MINIMAP_SCALE, rayPos.x * MINIMAP_SCALE, rayPos.y * MINIMAP_SCALE);
         }
 
         rayAngle += angleStep;
@@ -169,7 +142,7 @@ void drawMiniMap(SDL_Renderer *renderer) {
         for (int x = 0; x < MAP_WIDTH; x++) {
             if (map[y][x]) {
                 SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-                SDL_Rect rect = {x * 32, y * 32, 31, 31};
+                SDL_Rect rect = {x * MINIMAP_SCALE, y * MINIMAP_SCALE, MINIMAP_SCALE - 1, MINIMAP_SCALE - 1};
                 SDL_RenderFillRect(renderer, &rect);
             }
         }
@@ -178,22 +151,23 @@ void drawMiniMap(SDL_Renderer *renderer) {
 
 void drawPlayer(SDL_Renderer *renderer, Player *player) {
     SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255);
-    SDL_Rect rect = {player->pos.x * 32 - 3, player->pos.y * 32 - 3, 6, 6};
+    SDL_Rect rect = {player->pos.x * MINIMAP_SCALE - 3, player->pos.y * MINIMAP_SCALE - 3, 6, 6};
     SDL_RenderFillRect(renderer, &rect);
     vec2 next = {20 * cos(player->angle), 20 *sin(player->angle)};
-    SDL_RenderDrawLine(renderer, player->pos.x * 32, player->pos.y * 32, player->pos.x * 32 + next.x, player->pos.y * 32 + next.y);
+    SDL_RenderDrawLine(renderer, player->pos.x * MINIMAP_SCALE, player->pos.y * MINIMAP_SCALE, player->pos.x * MINIMAP_SCALE+ next.x, player->pos.y * MINIMAP_SCALE+ next.y);
 }
 
 int main() {
     SDL_Window *window = NULL;
     SDL_Renderer *renderer = NULL;
-    window_initialize(&window, &renderer);
+    bool is_running = window_initialize(&window, &renderer);
     window_clear(renderer);
-    Player player = {{5, 5}, 0, {0.1, 0.05}, 90};
-    bool is_running = true;
+    Player player = {{5, 5}, PI / 4, {0.001, 0.001}, 90};
 
     while (is_running) {
         window_process_input(&is_running, &player);
+        player_move(&player);
+        player_rotate(&player);
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
         draw(&player, renderer);
@@ -202,6 +176,5 @@ int main() {
         SDL_RenderPresent(renderer);
     }
     window_destroy(window, renderer);
-    SDL_Quit();
 }
 

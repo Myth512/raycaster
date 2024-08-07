@@ -56,13 +56,23 @@ void window_process_input(bool *is_running, Player *player)
 		if (event.key.keysym.sym == SDLK_ESCAPE)
 			*is_running = false;
 		if (event.key.keysym.sym == SDLK_w)
-			player_move(player, 1);
+			player->moveDirection = 1;
 		if (event.key.keysym.sym == SDLK_s)
-			player_move(player, -1);
+			player->moveDirection = -1;
 		if (event.key.keysym.sym == SDLK_a)
-			player_rotate(player, -1);
+			player->turnDirection = -1;
 		if (event.key.keysym.sym == SDLK_d)
-			player_rotate(player, 1);
+			player->turnDirection = 1;
+		break;
+	case SDL_KEYUP:
+		if (event.key.keysym.sym == SDLK_w)
+			player->moveDirection = 0;
+		if (event.key.keysym.sym == SDLK_s)
+			player->moveDirection = 0;
+		if (event.key.keysym.sym == SDLK_a)
+			player->turnDirection = 0;
+		if (event.key.keysym.sym == SDLK_d)
+			player->turnDirection = 0;
 		break;
 	}
 	return;
