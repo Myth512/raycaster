@@ -138,8 +138,6 @@ void draw_scene(SDL_Renderer *renderer, Player *player) {
             blue = 255;
 
         int wallHeight = WINDOW_HEIGHT / minDist; 
-        if (wallHeight > WINDOW_HEIGHT)
-            wallHeight = WINDOW_HEIGHT;
 
         draw_line(renderer, i, 0, 1, (WINDOW_HEIGHT - wallHeight) / 2, 0, 48, 128);
         if (closestWallColor == 8) {
@@ -149,6 +147,8 @@ void draw_scene(SDL_Renderer *renderer, Player *player) {
         }
         else
             draw_line(renderer, i, (WINDOW_HEIGHT - wallHeight) / 2, 1, wallHeight, red, green, blue);
+        if (wallHeight > WINDOW_HEIGHT)
+            wallHeight = WINDOW_HEIGHT;
         draw_line(renderer, i, (WINDOW_HEIGHT + wallHeight) / 2, 1, (WINDOW_HEIGHT - wallHeight), 64, 32, 64);
 
         if (rayPos.x > 0 && rayPos.x < MAP_WIDTH && rayPos.y > 0 && rayPos.y < MAP_HEIGHT) {
