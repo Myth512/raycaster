@@ -1,5 +1,3 @@
-#include <stdbool.h>
-#include <SDL2/SDL.h>
 #include "../include/window.h"
 
 bool window_initialize(SDL_Window **window, SDL_Renderer **renderer)

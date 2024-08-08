@@ -10,6 +10,17 @@ void draw_line(SDL_Renderer *renderer, int x, int y, int width, int height, int 
 	SDL_RenderFillRect(renderer, &rect);
 }
 
+void draw_texture_line(SDL_Renderer *renderer, int x, int y, int width, int height, Texture *texture, int tx) {
+    int segment_height = ceil((double)height / TEXTURE_HEIGHT);
+    double step = (double)height / TEXTURE_HEIGHT;
+    for (int ty = 0; ty < TEXTURE_HEIGHT; ty++) {
+        Uint8 red = texture->bitmap[ty][tx].red;
+        Uint8 green = texture->bitmap[ty][tx].green;
+        Uint8 blue = texture->bitmap[ty][tx].blue;
+        draw_line(renderer, x, y + (int)(ty * step), 1, segment_height, red, green, blue);
+    } 
+}
+
 void draw_scene(SDL_Renderer *renderer, Player *player) {
     double angleStep = deg_to_rad(FOV) / WINDOW_WIDTH;
     double rayAngle = player->angle - deg_to_rad(FOV) / 2;
@@ -48,8 +59,8 @@ void draw_scene(SDL_Renderer *renderer, Player *player) {
                 break;
             }
         }
-        vec2 tmp = rayPos;
         dist.x = vec2_dist(&rayPos, &player->pos);
+        vec2 tmp = rayPos;
 
         double nTan = -tan(rayAngle);
         if (rayAngle > PI/2 && rayAngle < 3*PI/2) {
@@ -131,7 +142,13 @@ void draw_scene(SDL_Renderer *renderer, Player *player) {
             wallHeight = WINDOW_HEIGHT;
 
         draw_line(renderer, i, 0, 1, (WINDOW_HEIGHT - wallHeight) / 2, 0, 48, 128);
-        draw_line(renderer, i, (WINDOW_HEIGHT - wallHeight) / 2, 1, wallHeight, red, green, blue);
+        if (closestWallColor == 8) {
+            Texture texture = {TEXTURE_BRICK_WALL};
+            int tx = fmod((rayPos.x + rayPos.y) * 8, 8);
+            draw_texture_line(renderer, i, (WINDOW_HEIGHT - wallHeight) / 2, 1, wallHeight, &texture, tx);
+        }
+        else
+            draw_line(renderer, i, (WINDOW_HEIGHT - wallHeight) / 2, 1, wallHeight, red, green, blue);
         draw_line(renderer, i, (WINDOW_HEIGHT + wallHeight) / 2, 1, (WINDOW_HEIGHT - wallHeight), 64, 32, 64);
 
         if (rayPos.x > 0 && rayPos.x < MAP_WIDTH && rayPos.y > 0 && rayPos.y < MAP_HEIGHT) {
