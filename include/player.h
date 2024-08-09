@@ -4,12 +4,11 @@
 #include <math.h>
 #include "vec2.h"
 #include "constants.h"
+#include "map.h"
 
 typedef struct {
     vec2 pos;
     double angle;
-    int moveDirection;
-    int turnDirection;
 } Player;
 
 void player_turn(Player *player, int direction, double delta_time);

@@ -33,7 +33,7 @@ void draw_texture_line(SDL_Renderer *renderer, int x, int y, int width, int heig
     int segment_height = ceil((double)height / texture->height);
     double step = (double)height / texture->height;
     for (int ty = 0; ty < texture->height; ty++)
-        draw_line(renderer, x, y + ty * step, 1, segment_height, texture->bitmap[ty][tx]);
+        draw_line(renderer, x, y + ty * step, SCALE, segment_height, texture->bitmap[ty][tx]);
 }
 
 RGB decode_color(int id) {
@@ -92,7 +92,7 @@ void draw_scene(SDL_Renderer *renderer, Player *player) {
     double angleStep = deg_to_rad(FOV) / WINDOW_WIDTH;
     double rayAngle = player->angle - deg_to_rad(FOV) / 2;
     vec2 rayPos = {0, 0};
-    for (int i = 0; i < WINDOW_WIDTH; i++) {
+    for (int i = 0; i < WINDOW_WIDTH; i += SCALE) {
         if (rayAngle < 0)
             rayAngle += 2*PI;
         if (rayAngle > 2*PI)
@@ -166,20 +166,20 @@ void draw_scene(SDL_Renderer *renderer, Player *player) {
 
         int wallHeight = WINDOW_HEIGHT / minDist; 
 
-        draw_line(renderer, i, 0, 1, (WINDOW_HEIGHT - wallHeight) / 2, COLOR_SKY);
+        draw_line(renderer, i, 0, SCALE, (WINDOW_HEIGHT - wallHeight) / 2, COLOR_SKY);
         if (closestWallID > 10) {
             Texture *texture = brick_wall;
             int tx = fmod((rayPos.x + rayPos.y) * 8, 8);
-            draw_texture_line(renderer, i, (WINDOW_HEIGHT - wallHeight) / 2, 1, wallHeight, texture, tx);
+            draw_texture_line(renderer, i, (WINDOW_HEIGHT - wallHeight) / 2, SCALE, wallHeight, texture, tx);
         } else {
             RGB color = decode_color(closestWallID);
-            draw_line(renderer, i, (WINDOW_HEIGHT - wallHeight) / 2, 1, wallHeight, color);
+            draw_line(renderer, i, (WINDOW_HEIGHT - wallHeight) / 2, SCALE, wallHeight, color);
         }
         if (wallHeight > WINDOW_HEIGHT)
             wallHeight = WINDOW_HEIGHT;
-        draw_line(renderer, i, (WINDOW_HEIGHT + wallHeight) / 2, 1, (WINDOW_HEIGHT - wallHeight), COLOR_GROUND);
+        draw_line(renderer, i, (WINDOW_HEIGHT + wallHeight) / 2, SCALE, (WINDOW_HEIGHT - wallHeight), COLOR_GROUND);
 
-        rayAngle += angleStep;
+        rayAngle += angleStep * SCALE;
     }
     texture_destroy(brick_wall);
 }
