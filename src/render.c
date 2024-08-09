@@ -4,24 +4,91 @@ double deg_to_rad(double angle) {
     return angle * PI / 180;
 }
 
-void draw_line(SDL_Renderer *renderer, int x, int y, int width, int height, int red, int green, int blue) {
-	SDL_SetRenderDrawColor(renderer, red, green, blue, 255);
+Texture* texture_create(int width, int height, RGB bitmap[height][width]) {
+    Texture *texture = malloc(sizeof(Texture));
+    texture->width = width;
+    texture->height = height;
+    texture->bitmap = malloc(height * sizeof(RGB*));
+    for (int i = 0; i < height; i++) {
+        texture->bitmap[i] = malloc(width * sizeof(RGB));
+        memcpy(texture->bitmap[i], bitmap[i], width * sizeof(RGB));
+    }
+    return texture;
+}
+
+void texture_destroy(Texture *texture) {
+    for (int i = 0; i < texture->height; i++)
+        free(texture->bitmap[i]);
+    free(texture->bitmap);
+    free(texture);
+}
+
+void draw_line(SDL_Renderer *renderer, int x, int y, int width, int height, RGB color) {
+	SDL_SetRenderDrawColor(renderer, color.red, color.green, color.blue, 255);
 	SDL_Rect rect = {x, y, width, height};
 	SDL_RenderFillRect(renderer, &rect);
 }
 
 void draw_texture_line(SDL_Renderer *renderer, int x, int y, int width, int height, Texture *texture, int tx) {
-    int segment_height = ceil((double)height / TEXTURE_HEIGHT);
-    double step = (double)height / TEXTURE_HEIGHT;
-    for (int ty = 0; ty < TEXTURE_HEIGHT; ty++) {
-        Uint8 red = texture->bitmap[ty][tx].red;
-        Uint8 green = texture->bitmap[ty][tx].green;
-        Uint8 blue = texture->bitmap[ty][tx].blue;
-        draw_line(renderer, x, y + (int)(ty * step), 1, segment_height, red, green, blue);
-    } 
+    int segment_height = ceil((double)height / texture->height);
+    double step = (double)height / texture->height;
+    for (int ty = 0; ty < texture->height; ty++)
+        draw_line(renderer, x, y + ty * step, 1, segment_height, texture->bitmap[ty][tx]);
+}
+
+RGB decode_color(int id) {
+    RGB color = {0, 0, 0};
+    switch(id) {
+        case 2:
+            color.red = 128;
+            color.green = 128;
+            color.blue = 128;
+            break;
+        case 3:
+            color.red = 255;
+            color.green = 255;
+            color.blue = 255;
+            break;
+        case 4:
+            color.red = 255;
+            break;
+        case 5:
+            color.green = 255;
+            break;
+        case 6:
+            color.blue = 255;
+            break;
+        case 7:
+            color.red = 255;
+            color.green = 255;
+            break;
+        case 8:
+            color.green = 255;
+            color.blue = 255;
+            break;
+        case 9:
+            color.red = 255;
+            color.blue = 255;
+            break;
+        case 10:
+            color.red = 255;
+            color.green = 192;
+            break;
+    }
+    return color;
+}
+
+Texture *decode_texture(int id) {
+    Texture *texture = NULL;
+    switch(id) {
+        case 11:
+            texture = texture_create(TEXTURE_BRICK_WALL);
+    }
+    return texture;
 }
 
 void draw_scene(SDL_Renderer *renderer, Player *player) {
+    Texture *brick_wall = texture_create(TEXTURE_BRICK_WALL);
     double angleStep = deg_to_rad(FOV) / WINDOW_WIDTH;
     double rayAngle = player->angle - deg_to_rad(FOV) / 2;
     vec2 rayPos = {0, 0};
@@ -33,7 +100,7 @@ void draw_scene(SDL_Renderer *renderer, Player *player) {
 
         vec2 rayStep = {0, 0};
         vec2 dist = {0, 0};
-        vec2 wallColor = {0, 0};
+        vec2 wallID = {0, 0};
         double aTan = -1 / tan(rayAngle);
 
         if (rayAngle > PI) {
@@ -49,11 +116,11 @@ void draw_scene(SDL_Renderer *renderer, Player *player) {
         }
 
         if (rayPos.x > 0 && rayPos.x < MAP_WIDTH && rayPos.y > 0 && rayPos.y < MAP_HEIGHT)
-            wallColor.x = map[(int)rayPos.y][(int)rayPos.x];
-        while (!wallColor.x) {
+            wallID.x = map[(int)rayPos.y][(int)rayPos.x];
+        while (!wallID.x) {
             rayPos = vec2_add(&rayPos, &rayStep);
             if (rayPos.x > 0 && rayPos.x < MAP_WIDTH && rayPos.y > 0 && rayPos.y < MAP_HEIGHT)
-                wallColor.x = map[(int)rayPos.y][(int)rayPos.x];
+                wallID.x = map[(int)rayPos.y][(int)rayPos.x];
             else {
                 rayPos = vec2_multiply(&rayPos, 10000);
                 break;
@@ -76,11 +143,11 @@ void draw_scene(SDL_Renderer *renderer, Player *player) {
         }
 
         if (rayPos.x > 0 && rayPos.x < MAP_WIDTH && rayPos.y > 0 && rayPos.y < MAP_HEIGHT)
-            wallColor.y = map[(int)rayPos.y][(int)rayPos.x];
-        while (!wallColor.y) {
+            wallID.y = map[(int)rayPos.y][(int)rayPos.x];
+        while (!wallID.y) {
             rayPos = vec2_add(&rayPos, &rayStep);
             if (rayPos.x > 0 && rayPos.x < MAP_WIDTH && rayPos.y > 0 && rayPos.y < MAP_HEIGHT)
-                wallColor.y = map[(int)rayPos.y][(int)rayPos.x];
+                wallID.y = map[(int)rayPos.y][(int)rayPos.x];
             else {
                 rayPos = vec2_multiply(&rayPos, 10000);
                 break;
@@ -89,75 +156,32 @@ void draw_scene(SDL_Renderer *renderer, Player *player) {
         dist.y = vec2_dist(&rayPos, &player->pos);
 
         double minDist = dist.x;
-        int closestWallColor = wallColor.x;
+        int closestWallID = wallID.x;
         if (dist.x > dist.y) {
             minDist = dist.y;
-            closestWallColor = wallColor.y;
+            closestWallID = wallID.y;
         } else
             rayPos = tmp;
         minDist *= cos(player->angle - rayAngle);
 
-        int red = 0, green = 0, blue = 0;
-        switch(closestWallColor) {
-            case 1:
-                red = 255;
-                break;
-            case 2:
-                green = 255;
-                break;
-            case 3:
-                blue = 255;
-                break;
-            case 4:
-                red = 255;
-                green = 255;
-                break;
-            case 5:
-                green = 255;
-                blue = 255;
-                break;
-            case 6:
-                blue = 255;
-                red = 255;
-                break;
-            case 7:
-                red = 255;
-                green = 255;
-                blue = 255;
-                break;
-        }
-        
-        red = red / minDist;
-        if (red > 255)
-            red = 255;
-        green = green / minDist;
-        if (green > 255)
-            green = 255;
-        blue = blue / minDist;
-        if (blue > 255)
-            blue = 255;
-
         int wallHeight = WINDOW_HEIGHT / minDist; 
 
-        draw_line(renderer, i, 0, 1, (WINDOW_HEIGHT - wallHeight) / 2, 0, 48, 128);
-        if (closestWallColor == 8) {
-            Texture texture = {TEXTURE_BRICK_WALL};
+        draw_line(renderer, i, 0, 1, (WINDOW_HEIGHT - wallHeight) / 2, COLOR_SKY);
+        if (closestWallID > 10) {
+            Texture *texture = brick_wall;
             int tx = fmod((rayPos.x + rayPos.y) * 8, 8);
-            draw_texture_line(renderer, i, (WINDOW_HEIGHT - wallHeight) / 2, 1, wallHeight, &texture, tx);
+            draw_texture_line(renderer, i, (WINDOW_HEIGHT - wallHeight) / 2, 1, wallHeight, texture, tx);
+        } else {
+            RGB color = decode_color(closestWallID);
+            draw_line(renderer, i, (WINDOW_HEIGHT - wallHeight) / 2, 1, wallHeight, color);
         }
-        else
-            draw_line(renderer, i, (WINDOW_HEIGHT - wallHeight) / 2, 1, wallHeight, red, green, blue);
         if (wallHeight > WINDOW_HEIGHT)
             wallHeight = WINDOW_HEIGHT;
-        draw_line(renderer, i, (WINDOW_HEIGHT + wallHeight) / 2, 1, (WINDOW_HEIGHT - wallHeight), 64, 32, 64);
-
-        if (rayPos.x > 0 && rayPos.x < MAP_WIDTH && rayPos.y > 0 && rayPos.y < MAP_HEIGHT) {
-            SDL_SetRenderDrawColor(renderer, red, green, blue, 255);
-            SDL_RenderDrawLine(renderer, player->pos.x * MINIMAP_SCALE, player->pos.y * MINIMAP_SCALE, rayPos.x * MINIMAP_SCALE, rayPos.y * MINIMAP_SCALE);
-        }
+        draw_line(renderer, i, (WINDOW_HEIGHT + wallHeight) / 2, 1, (WINDOW_HEIGHT - wallHeight), COLOR_GROUND);
 
         rayAngle += angleStep;
     }
+    texture_destroy(brick_wall);
 }
 
 void draw_minimap(SDL_Renderer *renderer) {

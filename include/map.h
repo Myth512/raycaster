@@ -1,8 +1,21 @@
 #include "constants.h"
 
+// 0 - no wall
+// 1 - black wall
+// 2 - gray wall
+// 3 - white wall
+// 4 - red wall
+// 5 - green wall
+// 6 - blue wall
+// 7 - yellow wall
+// 8 - cyan wall
+// 9 - purple wall
+// 10 - orange wall
+// 11 - brick wall
+
 static int map[MAP_HEIGHT][MAP_WIDTH] = 
 {
-    {8, 8, 8, 8, 8, 8, 8, 8, 8, 8},
+    {11, 11, 11, 11, 11, 8, 8, 8, 8, 8},
     {8, 0, 0, 0, 8, 0, 0, 0, 0, 8},
     {8, 8, 8, 0, 8, 0, 8, 0, 0, 8},
     {8, 0, 8, 0, 8, 0, 0, 0, 0, 8},
@@ -11,7 +24,7 @@ static int map[MAP_HEIGHT][MAP_WIDTH] =
     {8, 0, 0, 0, 8, 8, 8, 0, 8, 8},
     {8, 0, 8, 8, 8, 0, 0, 0, 0, 8},
     {8, 0, 8, 0, 0, 0, 0, 0, 0, 8},
-    {8, 8, 8, 8, 8, 8, 8, 8, 8, 8},
+    {8, 8, 11, 11, 8, 8, 8, 8, 8, 8},
 };
 
 // static int map[MAP_HEIGHT][MAP_WIDTH] = 
@@ -42,13 +55,3 @@ static int map[MAP_HEIGHT][MAP_WIDTH] =
 //     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
 // };
 
-
-// 0 - no wall
-// 1 - red wall
-// 2 - green wall
-// 3 - blue wall
-// 4 - yellow wall
-// 5 - cyan wall
-// 6 - purple wall
-// 7 - white wall
-// 8 - black wall

@@ -13,7 +13,9 @@ typedef struct {
 } RGB;
 
 typedef struct {
-    RGB bitmap[TEXTURE_HEIGHT][TEXTURE_WIDTH];
+    int width;
+    int height;
+    RGB **bitmap;
 } Texture;
 
 void render(SDL_Renderer *renderer, Player *player);
