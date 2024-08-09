@@ -24,6 +24,8 @@ void texture_destroy(Texture *texture) {
 }
 
 void draw_line(SDL_Renderer *renderer, int x, int y, int width, int height, RGB color) {
+    if (width <= 0 || height <= 0)
+        return;
 	SDL_SetRenderDrawColor(renderer, color.red, color.green, color.blue, 255);
 	SDL_Rect rect = {x, y, width, height};
 	SDL_RenderFillRect(renderer, &rect);
@@ -92,7 +94,7 @@ void draw_scene(SDL_Renderer *renderer, Player *player) {
     double angleStep = deg_to_rad(FOV) / WINDOW_WIDTH;
     double rayAngle = player->angle - deg_to_rad(FOV) / 2;
     vec2 rayPos = {0, 0};
-    for (int i = 0; i < WINDOW_WIDTH; i += SCALE) {
+    for (int x = 0; x < WINDOW_WIDTH; x += SCALE) {
         if (rayAngle < 0)
             rayAngle += 2*PI;
         if (rayAngle > 2*PI)
@@ -165,19 +167,20 @@ void draw_scene(SDL_Renderer *renderer, Player *player) {
         minDist *= cos(player->angle - rayAngle);
 
         int wallHeight = WINDOW_HEIGHT / minDist; 
+        int wallOffset = (WINDOW_HEIGHT - wallHeight) / 2;
+        int floorOffset = (WINDOW_HEIGHT + wallHeight) / 2;
+        int floorHeight = (WINDOW_HEIGHT - wallHeight);
 
-        draw_line(renderer, i, 0, SCALE, (WINDOW_HEIGHT - wallHeight) / 2, COLOR_SKY);
+        draw_line(renderer, x, 0, SCALE, wallOffset, COLOR_SKY);
         if (closestWallID > 10) {
             Texture *texture = brick_wall;
             int tx = fmod((rayPos.x + rayPos.y) * 8, 8);
-            draw_texture_line(renderer, i, (WINDOW_HEIGHT - wallHeight) / 2, SCALE, wallHeight, texture, tx);
+            draw_texture_line(renderer, x, wallOffset, SCALE, wallHeight, texture, tx);
         } else {
             RGB color = decode_color(closestWallID);
-            draw_line(renderer, i, (WINDOW_HEIGHT - wallHeight) / 2, SCALE, wallHeight, color);
+            draw_line(renderer, x, wallOffset, SCALE, wallHeight, color);
         }
-        if (wallHeight > WINDOW_HEIGHT)
-            wallHeight = WINDOW_HEIGHT;
-        draw_line(renderer, i, (WINDOW_HEIGHT + wallHeight) / 2, SCALE, (WINDOW_HEIGHT - wallHeight), COLOR_GROUND);
+        draw_line(renderer, x, floorOffset, SCALE, floorHeight, COLOR_GROUND);
 
         rayAngle += angleStep * SCALE;
     }
