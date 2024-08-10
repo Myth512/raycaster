@@ -4,6 +4,13 @@ double deg_to_rad(double angle) {
     return angle * PI / 180;
 }
 
+enum TextureID{
+    TEXTURE_BRICK_WALL_ID,
+    TEXTURE_STONE_WALL_ID,
+    TEXTURE_GRADIENT_ID,
+    TEXTURE_COUNT
+};
+
 Texture* texture_create(int width, int height, RGB bitmap[height][width]) {
     Texture *texture = malloc(sizeof(Texture));
     texture->width = width;
@@ -15,6 +22,21 @@ Texture* texture_create(int width, int height, RGB bitmap[height][width]) {
     }
     return texture;
 }
+
+Texture** load_textures() {
+    Texture **textures = calloc(TEXTURE_COUNT, sizeof(Texture*));
+    textures[0] = texture_create(TEXTURE_BRICK_WALL);
+    textures[1] = texture_create(TEXTURE_STONE_WALL);
+    textures[2] = texture_create(TEXTURE_GRADIENT);
+    return textures;
+}
+
+void unload_textures(Texture **textures) {
+    for (int i = 0; i < TEXTURE_COUNT; i++)
+        free(textures[i]);
+    free(textures);
+}
+
 
 void texture_destroy(Texture *texture) {
     for (int i = 0; i < texture->height; i++)
@@ -89,8 +111,7 @@ Texture *decode_texture(int id) {
     return texture;
 }
 
-void draw_scene(SDL_Renderer *renderer, Player *player) {
-    Texture *brick_wall = texture_create(TEXTURE_BRICK_WALL);
+void draw_scene(SDL_Renderer *renderer, Texture **loaded_textures, Player *player) {
     double angleStep = deg_to_rad(FOV) / WINDOW_WIDTH;
     double rayAngle = player->angle - deg_to_rad(FOV) / 2;
     vec2 rayPos = {0, 0};
@@ -173,8 +194,8 @@ void draw_scene(SDL_Renderer *renderer, Player *player) {
 
         draw_line(renderer, x, 0, SCALE, wallOffset, COLOR_SKY);
         if (closestWallID > 10) {
-            Texture *texture = brick_wall;
-            int tx = fmod((rayPos.x + rayPos.y) * 8, 8);
+            Texture *texture = loaded_textures[closestWallID-11];
+            int tx = fmod((rayPos.x + rayPos.y) * texture->width, texture->width);
             draw_texture_line(renderer, x, wallOffset, SCALE, wallHeight, texture, tx);
         } else {
             RGB color = decode_color(closestWallID);
@@ -184,7 +205,6 @@ void draw_scene(SDL_Renderer *renderer, Player *player) {
 
         rayAngle += angleStep * SCALE;
     }
-    texture_destroy(brick_wall);
 }
 
 void draw_minimap(SDL_Renderer *renderer) {
@@ -207,10 +227,10 @@ void draw_player_icon(SDL_Renderer *renderer, Player *player) {
     SDL_RenderDrawLine(renderer, player->pos.x * MINIMAP_SCALE, player->pos.y * MINIMAP_SCALE, player->pos.x * MINIMAP_SCALE+ next.x, player->pos.y * MINIMAP_SCALE+ next.y);
 }
 
-void render(SDL_Renderer *renderer, Player *player) {
+void render(SDL_Renderer *renderer, Texture **loaded_textures, Player *player) {
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderClear(renderer);
-    draw_scene(renderer, player);
+    draw_scene(renderer, loaded_textures, player);
     draw_player_icon(renderer, player);
     draw_minimap(renderer);
     SDL_RenderPresent(renderer);

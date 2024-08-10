@@ -3,6 +3,7 @@
 int main() {
     SDL_Window *window = NULL;
     SDL_Renderer *renderer = NULL;
+    Texture **loaded_textures = load_textures();
     Key_states key_states = {0};
     bool is_running = window_initialize(&window, &renderer);
     Uint32 frame_start_time = 0, frame_end_time = 0, frame_time = 0;
@@ -15,11 +16,12 @@ int main() {
 
         update(&key_states, frame_time / 1000.0f, &player);
 
-        render(renderer, &player);
+        render(renderer, loaded_textures, &player);
 
         frame_end_time = SDL_GetTicks();
         frame_time = frame_end_time - frame_start_time;
     }
+    unload_textures(loaded_textures);
     window_destroy(window, renderer);
 }
 

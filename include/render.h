@@ -18,6 +18,10 @@ typedef struct {
     RGB **bitmap;
 } Texture;
 
-void render(SDL_Renderer *renderer, Player *player);
+Texture** load_textures();
+
+void unload_textures(Texture **textures);
+
+void render(SDL_Renderer *renderer, Texture **loaded_textures, Player *player);
 
 #endif
