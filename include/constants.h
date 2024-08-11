@@ -2,11 +2,11 @@
 #define WINDOW_HEIGHT 720
 #define MAP_WIDTH 10
 #define MAP_HEIGHT 10
-#define SCALE 1
+#define SCALE 2
 #define MINIMAP_SCALE 16
 #define FOV 90
 #define MOVING_SPEED 1.5    
-#define TURNING_SPEED 1.5 
+#define TURNING_SPEED 2
 #define PLAYER_SIZE 0.2
 #define TARGET_FPS 120
 #define TARGET_SLEEP_TIME 1000 / TARGET_FPS

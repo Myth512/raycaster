@@ -24,7 +24,6 @@ Texture* texture_create(int width, int height, RGB bitmap[height][width]) {
 }
 
 Texture *texture_create_default(int width, int height) {
-    printf("im here4\n");
     Texture *texture = malloc(sizeof(Texture));
     texture->width = width;
     texture->height = height;
@@ -48,9 +47,6 @@ Texture* load_texture_from_image(char *path) {
         return 0;
     }
 
-    int size;
-    fread(&size, 1, sizeof(int), fptr);
-
     int bitmap_offset;
     fseek(fptr, 10, SEEK_SET);
     fread(&bitmap_offset, 1, sizeof(int), fptr);
@@ -65,18 +61,19 @@ Texture* load_texture_from_image(char *path) {
     short color_depth;
     fseek(fptr, 28, SEEK_SET);
     fread(&color_depth, 1, sizeof(short), fptr);
+    printf("%d\n", color_depth);
 
-    printf("im here3\n");
     Texture *texture = texture_create_default(width, height);
-    printf("im here5 %p\n", texture);
     fseek(fptr, bitmap_offset, SEEK_SET);
     for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
             fread(&texture->bitmap[y][x].blue, 1, 1, fptr);
             fread(&texture->bitmap[y][x].green, 1, 1, fptr);
             fread(&texture->bitmap[y][x].red, 1, 1, fptr);
-            fseek(fptr, 1, SEEK_CUR);
+            if (color_depth == 32)
+                fseek(fptr, 1, SEEK_CUR);
         }
+        fseek(fptr, width % 4, SEEK_CUR);
     }
 
     fclose(fptr);
@@ -85,11 +82,10 @@ Texture* load_texture_from_image(char *path) {
 
 
 Texture** load_textures() {
-    Texture **textures = calloc(4, sizeof(Texture*));
+    Texture **textures = calloc(6, sizeof(Texture*));
     textures[0] = texture_create(TEXTURE_BRICK_WALL);
     textures[1] = texture_create(TEXTURE_STONE_WALL);
     textures[2] = texture_create(TEXTURE_GRADIENT);
-    printf("im here1\n");
     Texture *tmp = load_texture_from_image("../assets/image.bmp");
     if (tmp != NULL)
         textures[3] = tmp;
@@ -97,12 +93,26 @@ Texture** load_textures() {
         printf("could not load image.bmp\n");
         exit(-1);
     }
-    printf("im here2 %p\n", textures[3]);
+    tmp = load_texture_from_image("../assets/gradient.bmp");
+    if (tmp != NULL)
+        textures[4] = tmp;
+    else {
+        printf("could not load gradient.bmp\n");
+        exit(-1);
+    }
+    tmp = load_texture_from_image("../assets/megumin.bmp");
+    if (tmp != NULL)
+        textures[5] = tmp;
+    else {
+        printf("could not load megumin.bmp\n");
+        exit(-1);
+    }
+
     return textures;
 }
 
 void unload_textures(Texture **textures) {
-    for (int i = 0; i < TEXTURE_COUNT; i++)
+    for (int i = 0; i < 6; i++)
         free(textures[i]);
     free(textures);
 }
