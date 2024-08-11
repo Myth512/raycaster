@@ -4,127 +4,6 @@ double deg_to_rad(double angle) {
     return angle * PI / 180;
 }
 
-enum TextureID{
-    TEXTURE_BRICK_WALL_ID,
-    TEXTURE_STONE_WALL_ID,
-    TEXTURE_GRADIENT_ID,
-    TEXTURE_COUNT
-};
-
-Texture* texture_create(int width, int height, RGB bitmap[height][width]) {
-    Texture *texture = malloc(sizeof(Texture));
-    texture->width = width;
-    texture->height = height;
-    texture->bitmap = malloc(height * sizeof(RGB*));
-    for (int i = 0; i < height; i++) {
-        texture->bitmap[i] = malloc(width * sizeof(RGB));
-        memcpy(texture->bitmap[i], bitmap[i], width * sizeof(RGB));
-    }
-    return texture;
-}
-
-Texture *texture_create_default(int width, int height) {
-    Texture *texture = malloc(sizeof(Texture));
-    texture->width = width;
-    texture->height = height;
-    texture->bitmap = malloc(height * sizeof(RGB*));
-    for (int i = 0; i < height; i++)
-        texture->bitmap[i] = calloc(width, sizeof(RGB));
-    return texture;
-}
-
-Texture* load_texture_from_image(char *path) {
-    FILE *fptr;
-    fptr = fopen(path, "rb");
-
-    if (fptr == NULL)
-        return 0;
-
-    unsigned char signature[2];
-    fread(signature, 2, sizeof(char), fptr);
-    if (signature[0] != 'B' || signature[1] != 'M') {
-        fclose(fptr);
-        return 0;
-    }
-
-    int bitmap_offset;
-    fseek(fptr, 10, SEEK_SET);
-    fread(&bitmap_offset, 1, sizeof(int), fptr);
-
-    int width;
-    fseek(fptr, 18, SEEK_SET);
-    fread(&width, 1, sizeof(int), fptr);
-
-    int height;
-    fread(&height, 1, sizeof(int), fptr);
-
-    short color_depth;
-    fseek(fptr, 28, SEEK_SET);
-    fread(&color_depth, 1, sizeof(short), fptr);
-    printf("%d\n", color_depth);
-
-    Texture *texture = texture_create_default(width, height);
-    fseek(fptr, bitmap_offset, SEEK_SET);
-    for (int y = 0; y < height; y++) {
-        for (int x = 0; x < width; x++) {
-            fread(&texture->bitmap[y][x].blue, 1, 1, fptr);
-            fread(&texture->bitmap[y][x].green, 1, 1, fptr);
-            fread(&texture->bitmap[y][x].red, 1, 1, fptr);
-            if (color_depth == 32)
-                fseek(fptr, 1, SEEK_CUR);
-        }
-        fseek(fptr, width % 4, SEEK_CUR);
-    }
-
-    fclose(fptr);
-    return texture; 
-} 
-
-
-Texture** load_textures() {
-    Texture **textures = calloc(6, sizeof(Texture*));
-    textures[0] = texture_create(TEXTURE_BRICK_WALL);
-    textures[1] = texture_create(TEXTURE_STONE_WALL);
-    textures[2] = texture_create(TEXTURE_GRADIENT);
-    Texture *tmp = load_texture_from_image("../assets/image.bmp");
-    if (tmp != NULL)
-        textures[3] = tmp;
-    else {
-        printf("could not load image.bmp\n");
-        exit(-1);
-    }
-    tmp = load_texture_from_image("../assets/gradient.bmp");
-    if (tmp != NULL)
-        textures[4] = tmp;
-    else {
-        printf("could not load gradient.bmp\n");
-        exit(-1);
-    }
-    tmp = load_texture_from_image("../assets/megumin.bmp");
-    if (tmp != NULL)
-        textures[5] = tmp;
-    else {
-        printf("could not load megumin.bmp\n");
-        exit(-1);
-    }
-
-    return textures;
-}
-
-void unload_textures(Texture **textures) {
-    for (int i = 0; i < 6; i++)
-        free(textures[i]);
-    free(textures);
-}
-
-
-void texture_destroy(Texture *texture) {
-    for (int i = 0; i < texture->height; i++)
-        free(texture->bitmap[i]);
-    free(texture->bitmap);
-    free(texture);
-}
-
 void draw_line(SDL_Renderer *renderer, int x, int y, int width, int height, RGB color) {
     if (width <= 0 || height <= 0)
         return;
@@ -133,7 +12,7 @@ void draw_line(SDL_Renderer *renderer, int x, int y, int width, int height, RGB 
 	SDL_RenderFillRect(renderer, &rect);
 }
 
-void draw_texture_line(SDL_Renderer *renderer, int x, int y, int width, int height, Texture *texture, int tx) {
+void draw_texture_line(SDL_Renderer *renderer, Texture *texture, int x, int y, int width, int height, int tx) {
     int segment_height = ceil((double)height / texture->height);
     double step = (double)height / texture->height;
     for (int ty = 0; ty < texture->height; ty++)
@@ -141,54 +20,42 @@ void draw_texture_line(SDL_Renderer *renderer, int x, int y, int width, int heig
 }
 
 RGB decode_color(int id) {
-    RGB color = {0, 0, 0};
+    RGB color = {  0,  0,  0}; // black
     switch(id) {
         case 2:
-            color.red = 128;
-            color.green = 128;
-            color.blue = 128;
+            color = (RGB){128, 128, 128}; // gray
             break;
         case 3:
-            color.red = 255;
-            color.green = 255;
-            color.blue = 255;
+            color = (RGB){255, 255, 255}; // white
             break;
         case 4:
-            color.red = 255;
+            color = (RGB){255,   0,   0}; // red
             break;
         case 5:
-            color.green = 255;
+            color = (RGB){  0, 255,   0}; // green
             break;
         case 6:
-            color.blue = 255;
+            color = (RGB){  0,   0, 255}; // blue
             break;
         case 7:
-            color.red = 255;
-            color.green = 255;
+            color = (RGB){255, 255,   0}; // yellow
             break;
         case 8:
-            color.green = 255;
-            color.blue = 255;
+            color = (RGB){  0, 255, 255}; // cyan
             break;
         case 9:
-            color.red = 255;
-            color.blue = 255;
-            break;
-        case 10:
-            color.red = 255;
-            color.green = 192;
+            color = (RGB){255,   0, 255}; // purple
             break;
     }
     return color;
 }
 
-Texture *decode_texture(int id) {
-    Texture *texture = NULL;
-    switch(id) {
-        case 11:
-            texture = texture_create(TEXTURE_BRICK_WALL);
+Texture* decode_texture(Texture **loaded_textures, int id) {
+    if (id >= TEXTURE_COUNT + 10) {
+        fprintf(stderr, "invalid texture id: %d\n", id);
+        exit(-1);
     }
-    return texture;
+    return loaded_textures[id - 10];
 }
 
 void draw_scene(SDL_Renderer *renderer, Texture **loaded_textures, Player *player) {
@@ -273,10 +140,10 @@ void draw_scene(SDL_Renderer *renderer, Texture **loaded_textures, Player *playe
         int floorHeight = (WINDOW_HEIGHT - wallHeight);
 
         draw_line(renderer, x, 0, SCALE, wallOffset, COLOR_SKY);
-        if (closestWallID > 10) {
-            Texture *texture = loaded_textures[closestWallID-11];
+        if (closestWallID >= 10) {
+            Texture *texture = decode_texture(loaded_textures, closestWallID);
             int tx = fmod((rayPos.x + rayPos.y) * texture->width, texture->width);
-            draw_texture_line(renderer, x, wallOffset, SCALE, wallHeight, texture, tx);
+            draw_texture_line(renderer, texture, x, wallOffset, SCALE, wallHeight, tx);
         } else {
             RGB color = decode_color(closestWallID);
             draw_line(renderer, x, wallOffset, SCALE, wallHeight, color);
@@ -303,7 +170,7 @@ void draw_player_icon(SDL_Renderer *renderer, Player *player) {
     SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255);
     SDL_Rect rect = {player->pos.x * MINIMAP_SCALE - 3, player->pos.y * MINIMAP_SCALE - 3, 6, 6};
     SDL_RenderFillRect(renderer, &rect);
-    vec2 next = {20 * cos(player->angle), 20 *sin(player->angle)};
+    vec2 next = {20 * cos(player->angle), 20 * sin(player->angle)};
     SDL_RenderDrawLine(renderer, player->pos.x * MINIMAP_SCALE, player->pos.y * MINIMAP_SCALE, player->pos.x * MINIMAP_SCALE+ next.x, player->pos.y * MINIMAP_SCALE+ next.y);
 }
 
