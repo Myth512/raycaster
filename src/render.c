@@ -23,11 +23,81 @@ Texture* texture_create(int width, int height, RGB bitmap[height][width]) {
     return texture;
 }
 
+Texture *texture_create_default(int width, int height) {
+    printf("im here4\n");
+    Texture *texture = malloc(sizeof(Texture));
+    texture->width = width;
+    texture->height = height;
+    texture->bitmap = malloc(height * sizeof(RGB*));
+    for (int i = 0; i < height; i++)
+        texture->bitmap[i] = calloc(width, sizeof(RGB));
+    return texture;
+}
+
+Texture* load_texture_from_image(char *path) {
+    FILE *fptr;
+    fptr = fopen(path, "rb");
+
+    if (fptr == NULL)
+        return 0;
+
+    unsigned char signature[2];
+    fread(signature, 2, sizeof(char), fptr);
+    if (signature[0] != 'B' || signature[1] != 'M') {
+        fclose(fptr);
+        return 0;
+    }
+
+    int size;
+    fread(&size, 1, sizeof(int), fptr);
+
+    int bitmap_offset;
+    fseek(fptr, 10, SEEK_SET);
+    fread(&bitmap_offset, 1, sizeof(int), fptr);
+
+    int width;
+    fseek(fptr, 18, SEEK_SET);
+    fread(&width, 1, sizeof(int), fptr);
+
+    int height;
+    fread(&height, 1, sizeof(int), fptr);
+
+    short color_depth;
+    fseek(fptr, 28, SEEK_SET);
+    fread(&color_depth, 1, sizeof(short), fptr);
+
+    printf("im here3\n");
+    Texture *texture = texture_create_default(width, height);
+    printf("im here5 %p\n", texture);
+    fseek(fptr, bitmap_offset, SEEK_SET);
+    for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
+            fread(&texture->bitmap[y][x].blue, 1, 1, fptr);
+            fread(&texture->bitmap[y][x].green, 1, 1, fptr);
+            fread(&texture->bitmap[y][x].red, 1, 1, fptr);
+            fseek(fptr, 1, SEEK_CUR);
+        }
+    }
+
+    fclose(fptr);
+    return texture; 
+} 
+
+
 Texture** load_textures() {
-    Texture **textures = calloc(TEXTURE_COUNT, sizeof(Texture*));
+    Texture **textures = calloc(4, sizeof(Texture*));
     textures[0] = texture_create(TEXTURE_BRICK_WALL);
     textures[1] = texture_create(TEXTURE_STONE_WALL);
     textures[2] = texture_create(TEXTURE_GRADIENT);
+    printf("im here1\n");
+    Texture *tmp = load_texture_from_image("../assets/image.bmp");
+    if (tmp != NULL)
+        textures[3] = tmp;
+    else {
+        printf("could not load image.bmp\n");
+        exit(-1);
+    }
+    printf("im here2 %p\n", textures[3]);
     return textures;
 }
 
@@ -57,7 +127,7 @@ void draw_texture_line(SDL_Renderer *renderer, int x, int y, int width, int heig
     int segment_height = ceil((double)height / texture->height);
     double step = (double)height / texture->height;
     for (int ty = 0; ty < texture->height; ty++)
-        draw_line(renderer, x, y + ty * step, SCALE, segment_height, texture->bitmap[ty][tx]);
+        draw_line(renderer, x, y + ty * step, SCALE, segment_height, texture->bitmap[texture->height - ty - 1][texture->width - tx - 1]);
 }
 
 RGB decode_color(int id) {
