@@ -12,11 +12,11 @@ void draw_line(SDL_Renderer *renderer, int x, int y, int width, int height, RGB 
 	SDL_RenderFillRect(renderer, &rect);
 }
 
-void draw_texture_line(SDL_Renderer *renderer, Texture *texture, int x, int y, int width, int height, int tx) {
+void draw_texture_line(SDL_Renderer *renderer, Texture *texture, int x, int y, int width, int height, int u) {
     int segment_height = ceil((double)height / texture->height);
     double step = (double)height / texture->height;
-    for (int ty = 0; ty < texture->height; ty++)
-        draw_line(renderer, x, y + ty * step, SCALE, segment_height, texture->bitmap[texture->height - ty - 1][texture->width - tx - 1]);
+    for (int v = 0; v < texture->height; v++)
+        draw_line(renderer, x, y + v * step, SCALE, segment_height, texture->bitmap[texture->height - v - 1][texture->width - u - 1]);
 }
 
 RGB decode_color(int id) {
@@ -139,15 +139,19 @@ void draw_scene(SDL_Renderer *renderer, Texture **loaded_textures, Player *playe
         int floorOffset = (WINDOW_HEIGHT + wallHeight) / 2;
         int floorHeight = (WINDOW_HEIGHT - wallHeight);
 
-        draw_line(renderer, x, 0, SCALE, wallOffset, COLOR_SKY);
+        Texture *background = loaded_textures[0];
+        int u = (background->width / (2*PI)) * rayAngle;
+        draw_texture_line(renderer, background, x, 0, SCALE, WINDOW_HEIGHT / 2, u);
+
         if (closestWallID >= 10) {
             Texture *texture = decode_texture(loaded_textures, closestWallID);
-            int tx = fmod((rayPos.x + rayPos.y) * texture->width, texture->width);
-            draw_texture_line(renderer, texture, x, wallOffset, SCALE, wallHeight, tx);
+            u = fmod((rayPos.x + rayPos.y) * texture->width, texture->width);
+            draw_texture_line(renderer, texture, x, wallOffset, SCALE, wallHeight, u);
         } else {
             RGB color = decode_color(closestWallID);
             draw_line(renderer, x, wallOffset, SCALE, wallHeight, color);
         }
+
         draw_line(renderer, x, floorOffset, SCALE, floorHeight, COLOR_GROUND);
 
         rayAngle += angleStep * SCALE;
@@ -178,7 +182,7 @@ void render(SDL_Renderer *renderer, Texture **loaded_textures, Player *player) {
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderClear(renderer);
     draw_scene(renderer, loaded_textures, player);
-    draw_player_icon(renderer, player);
     draw_minimap(renderer);
+    draw_player_icon(renderer, player);
     SDL_RenderPresent(renderer);
 }

@@ -4,7 +4,7 @@
 #define MAP_HEIGHT 10
 #define SCALE 1
 #define MINIMAP_SCALE 16
-#define TEXTURE_COUNT 3
+#define TEXTURE_COUNT 5
 #define FOV 90
 #define MOVING_SPEED 1.5    
 #define TURNING_SPEED 2

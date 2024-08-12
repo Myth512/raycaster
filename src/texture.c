@@ -79,23 +79,30 @@ Texture** load_textures() {
     Texture **textures = calloc(TEXTURE_COUNT, sizeof(Texture*));
     Texture *tmp;
 
-    tmp = load_texture_from_image("../assets/image.bmp");
+    tmp = load_texture_from_image("../assets/background.bmp");
     if (tmp != NULL)
         textures[0] = tmp;
+    else {
+        fprintf(stderr, "failed to load background.bmp\n");
+        exit(-1);
+    }
+    tmp = load_texture_from_image("../assets/image.bmp");
+    if (tmp != NULL)
+        textures[2] = tmp;
     else {
         fprintf(stderr, "failed to load image.bmp\n");
         exit(-1);
     }
     tmp = load_texture_from_image("../assets/gradient.bmp");
     if (tmp != NULL)
-        textures[1] = tmp;
+        textures[3] = tmp;
     else {
         fprintf(stderr, "failed to load gradient.bmp\n");
         exit(-1);
     }
     tmp = load_texture_from_image("../assets/megumin.bmp");
     if (tmp != NULL)
-        textures[2] = tmp;
+        textures[4] = tmp;
     else {
         fprintf(stderr, "failed to load megumin.bmp\n");
         exit(-1);
