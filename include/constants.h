@@ -6,8 +6,8 @@
 #define MINIMAP_SCALE 16
 #define TEXTURE_COUNT 5
 #define FOV 90
-#define MOVING_SPEED 1.5    
-#define TURNING_SPEED 2
+#define MOVING_SPEED 3
+#define TURNING_SPEED 4
 #define PLAYER_SIZE 0.2
 #define PI 3.14159265359
 

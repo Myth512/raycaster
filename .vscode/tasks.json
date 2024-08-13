@@ -7,8 +7,10 @@
             "command": "gcc",
             "args": [
                 "${workspaceFolder}/src/*.c",
-                "-l",
-                "SDL2",
+                "-lglfw",
+                "-lGL",
+                "-lGLU",
+                "-lGLEW",
                 "-lm",
                 "-o",
                 "${workspaceFolder}/bin/raycaster"

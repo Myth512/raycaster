@@ -1,12 +1,13 @@
 #ifndef RENDER
 #define RENDER
 
-#include <SDL2/SDL.h>
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
 #include "vec2.h"
 #include "player.h"
 #include "texture.h"
 #include "map.h"
 
-void render(SDL_Renderer *renderer, Texture **loaded_textures, Player *player);
+void render(GLFWwindow *window, RGB frame_buffer[WINDOW_HEIGHT][WINDOW_WIDTH], Texture **loaded_textures, Player *player);
 
 #endif

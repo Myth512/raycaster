@@ -1,7 +1,9 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <stdio.h>
-#include <SDL2/SDL.h>
+#include <time.h>
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
 
 #include "constants.h"
 #include "vec2.h"

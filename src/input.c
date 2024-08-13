@@ -1,36 +1,40 @@
 #include "../include/input.h"
+#include <stdio.h>
 
-void process_input(Key_states *key_states, bool *is_running) {
-	SDL_Event event;
-	SDL_PollEvent(&event);
-
-	switch (event.type)
-	{
-	case SDL_QUIT:
-		*is_running = false;
-		break;
-	case SDL_KEYDOWN:
-		if (event.key.keysym.sym == SDLK_ESCAPE)
-			*is_running = false;
-		if (event.key.keysym.sym == SDLK_w)
-            key_states->move_forward = true;
-		if (event.key.keysym.sym == SDLK_s)
-            key_states->move_backward = true;
-		if (event.key.keysym.sym == SDLK_a)
-            key_states->turn_left = true;
-		if (event.key.keysym.sym == SDLK_d)
-            key_states->turn_right = true;
-		break;
-	case SDL_KEYUP:
-		if (event.key.keysym.sym == SDLK_w)
-            key_states->move_forward = false;
-		if (event.key.keysym.sym == SDLK_s)
-            key_states->move_backward = false;
-		if (event.key.keysym.sym == SDLK_a)
-            key_states->turn_left = false;
-		if (event.key.keysym.sym == SDLK_d)
-            key_states->turn_right = false;
-		break;
+void key_callback(GLFWwindow *window, int key, int scancode, int action, int mode) {
+	Key_states *key_states = (Key_states *)glfwGetWindowUserPointer(window);
+	if (action == GLFW_PRESS) {
+		switch(key) {
+			case GLFW_KEY_ESCAPE:
+				glfwSetWindowShouldClose(window, GLFW_TRUE);
+				break;
+			case GLFW_KEY_W:
+				key_states->move_forward = true;
+				break;
+			case GLFW_KEY_S:
+				key_states->move_backward = true;
+				break;
+			case GLFW_KEY_A:
+				key_states->turn_left = true;
+				break;
+			case GLFW_KEY_D:
+				key_states->turn_right = true;
+				break;
+		}
+	} else if (action == GLFW_RELEASE) {
+		switch(key) {
+			case GLFW_KEY_W:
+				key_states->move_forward = false;
+				break;
+			case GLFW_KEY_S:
+				key_states->move_backward = false;
+				break;
+			case GLFW_KEY_A:
+				key_states->turn_left = false;
+				break;
+			case GLFW_KEY_D:
+				key_states->turn_right = false;
+				break;
+		}
 	}
-	return;
 }

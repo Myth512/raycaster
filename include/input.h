@@ -2,7 +2,8 @@
 #define INPUT
 
 #include <stdbool.h>
-#include <SDL2/SDL.h>
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
 #include "player.h"
 
 typedef struct {
@@ -12,6 +13,6 @@ typedef struct {
     bool turn_right;
 } Key_states;
 
-void process_input(Key_states *keys, bool *is_running);
+void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods);
 
 #endif
