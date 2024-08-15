@@ -12,6 +12,7 @@
                 "-lGLU",
                 "-lGLEW",
                 "-lm",
+                "-O3",
                 "-o",
                 "${workspaceFolder}/bin/raycaster"
             ],

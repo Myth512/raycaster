@@ -4,9 +4,10 @@
 #include <stdbool.h>
 #include "constants.h"
 #include "player.h"
+#include "input.h"
 
-// bool window_initialize(SDL_Window **window, SDL_Renderer **renderer);
+GLFWwindow* window_create(Key_states *key_states);
 
-// void window_destroy(SDL_Window *window, SDL_Renderer *renderer);
+void window_destroy(GLFWwindow *window);
 
 #endif

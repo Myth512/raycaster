@@ -1,4 +1,5 @@
 #include "../include/render.h"
+#include <time.h>
 
 double deg_to_rad(double angle) {
     return angle * PI / 180;
@@ -17,7 +18,7 @@ void draw_texture_line(RGB frame_buffer[WINDOW_HEIGHT][WINDOW_WIDTH], Texture *t
     int segment_height = ceil((double)height / texture->height);
     double step = (double)height / texture->height;
     for (int v = 0; v < texture->height; v++)
-        draw_line(frame_buffer, x, y + v * step, SCALE, segment_height, texture->bitmap[v][texture->width - u - 1]);
+        draw_line(frame_buffer, x, y + v * step, SCALE, segment_height, texture->bitmap[v][u]);
 }
 
 RGB decode_color(int id) {
@@ -133,10 +134,10 @@ void draw_scene(RGB frame_buffer[WINDOW_HEIGHT][WINDOW_WIDTH], Texture **loaded_
 
         int wallHeight = WINDOW_HEIGHT / minDist; 
         int wallOffset = (WINDOW_HEIGHT - wallHeight) / 2;
-        int floorHeight = (WINDOW_HEIGHT - wallHeight) / 2;
 
         Texture *background = loaded_textures[0];
         int u = (background->width / (2*PI)) * rayAngle;
+
         draw_texture_line(frame_buffer, background, x, WINDOW_HEIGHT / 2, SCALE, WINDOW_HEIGHT / 2, u);
 
         if (closestWallID >= 10) {
@@ -148,39 +149,18 @@ void draw_scene(RGB frame_buffer[WINDOW_HEIGHT][WINDOW_WIDTH], Texture **loaded_
             draw_line(frame_buffer, x, wallOffset, SCALE, wallHeight, color);
         }
 
-        draw_line(frame_buffer, x, 0, SCALE, floorHeight, COLOR_GROUND);
+        draw_line(frame_buffer, x, 0, SCALE, wallOffset, COLOR_GROUND);
 
         rayAngle += angleStep * SCALE;
     }
 }
 
-// void draw_minimap(SDL_Renderer *renderer) {
-//     for (int y = 0; y < MAP_HEIGHT; y++) {
-//         for (int x = 0; x < MAP_WIDTH; x++) {
-//             if (map[y][x]) {
-//                 SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-//                 SDL_Rect rect = {x * MINIMAP_SCALE, y * MINIMAP_SCALE, MINIMAP_SCALE - 1, MINIMAP_SCALE - 1};
-//                 SDL_RenderFillRect(renderer, &rect);
-//             }
-//         }
-//     }
-// }
-
-// void draw_player_icon(SDL_Renderer *renderer, Player *player) {
-//     SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255);
-//     SDL_Rect rect = {player->pos.x * MINIMAP_SCALE - 3, player->pos.y * MINIMAP_SCALE - 3, 6, 6};
-//     SDL_RenderFillRect(renderer, &rect);
-//     vec2 next = {20 * cos(player->angle), 20 * sin(player->angle)};
-//     SDL_RenderDrawLine(renderer, player->pos.x * MINIMAP_SCALE, player->pos.y * MINIMAP_SCALE, player->pos.x * MINIMAP_SCALE+ next.x, player->pos.y * MINIMAP_SCALE+ next.y);
-// }
-
 void render(GLFWwindow *window, RGB frame_buffer[WINDOW_HEIGHT][WINDOW_WIDTH], Texture **loaded_textures, Player *player) {
     glClear(GL_COLOR_BUFFER_BIT);
 
     draw_scene(frame_buffer, loaded_textures, player);
-    // draw_minimap(renderer);
-    // draw_player_icon(renerer, player);
-    glDrawPixels(WINDOW_WIDTH, WINDOW_HEIGHT, GL_RGB, GL_UNSIGNED_BYTE, frame_buffer);
+
+    glDrawPixels(WINDOW_WIDTH, WINDOW_HEIGHT, GL_RGBA, GL_UNSIGNED_BYTE, frame_buffer);
 
     glfwSwapBuffers(window);
 }

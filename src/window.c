@@ -1,41 +1,29 @@
 #include "../include/window.h"
 
-// bool window_initialize(SDL_Window **window, SDL_Renderer **renderer)
-// {
-// 	if (SDL_Init(SDL_INIT_VIDEO) != 0)
-// 	{
-// 		fprintf(stderr, "failed to initialize SDL: \n%s", SDL_GetError());
-// 		return false;
-// 	}
+GLFWwindow* window_create(Key_states *key_states) {
+    GLFWwindow* window;
 
-// 	*window = SDL_CreateWindow(
-// 		"Raycast Demo",
-// 		320,
-// 		180,
-// 		WINDOW_WIDTH,
-// 		WINDOW_HEIGHT,
-// 		0);
+    /* Initialize the library */
+    if (!glfwInit())
+        return 0;
 
-// 	if (!*window)
-// 	{
-// 		fprintf(stderr, "failed to create window\n");
-// 		return false;
-// 	}
+    /* Create a windowed mode window and its OpenGL context */
+    window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "raycaster", NULL, NULL);
+    if (!window)
+        return 0;
 
-// 	*renderer = SDL_CreateRenderer(*window, -1, 0);
-// 	if (!*renderer)
-// 	{
-// 		fprintf(stderr, "failed to create renderer\n");
-// 		return false;
-// 	}
+    /* Make the window's context current */
+    glfwMakeContextCurrent(window);
 
-// 	return true;
-// }
+    if (glewInit() != GLEW_OK)
+        return 0;
 
-// void window_destroy(SDL_Window *window, SDL_Renderer *renderer)
-// {
-// 	SDL_DestroyRenderer(renderer);
-// 	SDL_DestroyWindow(window);
-// 	SDL_Quit();
-// 	return;
-// }
+    glfwSetWindowUserPointer(window, key_states);
+    glfwSetKeyCallback(window, key_callback);
+    return window;
+}
+
+void window_destroy(GLFWwindow *window) {
+    glfwDestroyWindow(window);
+    glfwTerminate();
+}

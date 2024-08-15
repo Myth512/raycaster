@@ -1,18 +1,6 @@
 #include "../include/texture.h"
 
-Texture* texture_create(int width, int height, RGB bitmap[height][width]) {
-    Texture *texture = malloc(sizeof(Texture));
-    texture->width = width;
-    texture->height = height;
-    texture->bitmap = malloc(height * sizeof(RGB*));
-    for (int i = 0; i < height; i++) {
-        texture->bitmap[i] = malloc(width * sizeof(RGB));
-        memcpy(texture->bitmap[i], bitmap[i], width * sizeof(RGB));
-    }
-    return texture;
-}
-
-Texture *texture_create_default(int width, int height) {
+Texture *texture_create(int width, int height) {
     Texture *texture = malloc(sizeof(Texture));
     texture->width = width;
     texture->height = height;
@@ -58,7 +46,7 @@ Texture* load_texture_from_image(char *path) {
     fseek(fptr, 28, SEEK_SET);
     fread(&color_depth, 1, sizeof(short), fptr);
 
-    Texture *texture = texture_create_default(width, height);
+    Texture *texture = texture_create(width, height);
     fseek(fptr, bitmap_offset, SEEK_SET);
     for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {

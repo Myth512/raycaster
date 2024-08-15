@@ -11,5 +11,4 @@
 #define PLAYER_SIZE 0.2
 #define PI 3.14159265359
 
-#define COLOR_SKY (RGB){0, 48, 128}
 #define COLOR_GROUND (RGB){64, 32, 64}
