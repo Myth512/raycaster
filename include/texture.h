@@ -19,8 +19,13 @@ typedef struct {
     RGB **bitmap;
 } Texture;
 
-Texture** load_textures();
+typedef struct {
+    int size;
+    Texture *el[];
+} Texture_vector;
 
-void unload_textures(Texture **textures);
+Texture_vector* load_textures();
+
+void unload_textures(Texture_vector *textures);
 
 #endif

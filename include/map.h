@@ -3,6 +3,10 @@
 
 #include "constants.h"
 
-extern int map[MAP_HEIGHT][MAP_WIDTH];
+extern int ceiling_map[MAP_HEIGHT][MAP_WIDTH];
+
+extern int wall_map[MAP_HEIGHT][MAP_WIDTH];
+
+extern int floor_map[MAP_HEIGHT][MAP_WIDTH];
 
 #endif

@@ -52,15 +52,15 @@ RGB decode_color(int id) {
     return color;
 }
 
-Texture* decode_texture(Texture **loaded_textures, int id) {
+Texture* decode_texture(Texture_vector *loaded_textures, int id) {
     if (id >= TEXTURE_COUNT + 10) {
         fprintf(stderr, "invalid texture id: %d\n", id);
         exit(-1);
     }
-    return loaded_textures[id - 10];
+    return loaded_textures->el[id - 10];
 }
 
-void draw_scene(RGB frame_buffer[WINDOW_HEIGHT][WINDOW_WIDTH], Texture **loaded_textures, Player *player) {
+void draw_scene(RGB frame_buffer[WINDOW_HEIGHT][WINDOW_WIDTH], Texture_vector *loaded_textures, Player *player) {
     double angleStep = deg_to_rad(FOV) / WINDOW_WIDTH;
     double rayAngle = player->angle - deg_to_rad(FOV) / 2;
     vec2 rayPos = {0, 0};
@@ -88,11 +88,11 @@ void draw_scene(RGB frame_buffer[WINDOW_HEIGHT][WINDOW_WIDTH], Texture **loaded_
         }
 
         if (rayPos.x > 0 && rayPos.x < MAP_WIDTH && rayPos.y > 0 && rayPos.y < MAP_HEIGHT)
-            wallID.x = map[(int)rayPos.y][(int)rayPos.x];
+            wallID.x = wall_map[(int)rayPos.y][(int)rayPos.x];
         while (!wallID.x) {
             rayPos = vec2_add(&rayPos, &rayStep);
             if (rayPos.x > 0 && rayPos.x < MAP_WIDTH && rayPos.y > 0 && rayPos.y < MAP_HEIGHT)
-                wallID.x = map[(int)rayPos.y][(int)rayPos.x];
+                wallID.x = wall_map[(int)rayPos.y][(int)rayPos.x];
             else
                 break;
         }
@@ -113,11 +113,11 @@ void draw_scene(RGB frame_buffer[WINDOW_HEIGHT][WINDOW_WIDTH], Texture **loaded_
         }
 
         if (rayPos.x > 0 && rayPos.x < MAP_WIDTH && rayPos.y > 0 && rayPos.y < MAP_HEIGHT)
-            wallID.y = map[(int)rayPos.y][(int)rayPos.x];
+            wallID.y = wall_map[(int)rayPos.y][(int)rayPos.x];
         while (!wallID.y) {
             rayPos = vec2_add(&rayPos, &rayStep);
             if (rayPos.x > 0 && rayPos.x < MAP_WIDTH && rayPos.y > 0 && rayPos.y < MAP_HEIGHT)
-                wallID.y = map[(int)rayPos.y][(int)rayPos.x];
+                wallID.y = wall_map[(int)rayPos.y][(int)rayPos.x];
             else
                 break;
         }
@@ -130,12 +130,12 @@ void draw_scene(RGB frame_buffer[WINDOW_HEIGHT][WINDOW_WIDTH], Texture **loaded_
             closestWallID = wallID.y;
         } else
             rayPos = tmp;
-        minDist *= cos(player->angle - rayAngle);
+        minDist *= cos(rayAngle - player->angle);
 
         int wallHeight = WINDOW_HEIGHT / minDist; 
         int wallOffset = (WINDOW_HEIGHT - wallHeight) / 2;
 
-        Texture *background = loaded_textures[0];
+        Texture *background = loaded_textures->el[0];
         int u = (background->width / (2*PI)) * rayAngle;
 
         draw_texture_line(frame_buffer, background, x, WINDOW_HEIGHT / 2, SCALE, WINDOW_HEIGHT / 2, u);
@@ -143,8 +143,6 @@ void draw_scene(RGB frame_buffer[WINDOW_HEIGHT][WINDOW_WIDTH], Texture **loaded_
         if (closestWallID >= 10) {
             Texture *texture = decode_texture(loaded_textures, closestWallID);
             u = fmod((rayPos.x + rayPos.y) * texture->width, texture->width);
-            if (closestWallID == 13)
-                wallHeight *= 2;
             draw_texture_line(frame_buffer, texture, x, wallOffset, SCALE, wallHeight, u);
         } else {
             RGB color = decode_color(closestWallID);
@@ -152,20 +150,32 @@ void draw_scene(RGB frame_buffer[WINDOW_HEIGHT][WINDOW_WIDTH], Texture **loaded_
         }
 
 
-        Texture *floor = loaded_textures[5];
         for (int y = 0; y < wallOffset; y++) {
             double dist = (double)y / (WINDOW_HEIGHT / 2 - y) + 1;
             dist /= cos(player->angle - rayAngle);
-            u = fmod((player->pos.x + dist * cos(rayAngle)) * floor->width, floor->width);
-            int v = fmod((player->pos.y + dist * sin(rayAngle)) * floor->height, floor->height);
+            rayPos.x = player->pos.x + dist * cos(rayAngle);
+            rayPos.y = player->pos.y + dist * sin(rayAngle);
+            int floorID = floor_map[(int)rayPos.y][(int)rayPos.x];
+            Texture *floor = decode_texture(loaded_textures, floorID);
+
+            u = fmod(rayPos.x * floor->width, floor->width);
+            int v = fmod(rayPos.y * floor->height, floor->height);
             frame_buffer[y][x] = floor->bitmap[v][u];
         }
+
+        // for (int y = 100; x == WINDOW_WIDTH / 2 && y < wallOffset && y < 101; y++) {
+        //     double dist = (double)y / (WINDOW_HEIGHT / 2 - y);
+        //     printf("d: %f\n", dist);
+        //     u = fmod((dist) * floor->width, floor->width);
+        //     int v = fmod((dist) * floor->height, floor->height);
+        //     frame_buffer[y][x] = (RGB){255, 0, 0};
+        // }
 
         rayAngle += angleStep * SCALE;
     }
 }
 
-void render(GLFWwindow *window, RGB frame_buffer[WINDOW_HEIGHT][WINDOW_WIDTH], Texture **loaded_textures, Player *player) {
+void render(GLFWwindow *window, RGB frame_buffer[WINDOW_HEIGHT][WINDOW_WIDTH], Texture_vector *loaded_textures, Player *player) {
     glClear(GL_COLOR_BUFFER_BIT);
 
     draw_scene(frame_buffer, loaded_textures, player);

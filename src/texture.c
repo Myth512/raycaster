@@ -63,59 +63,36 @@ Texture* load_texture_from_image(char *path) {
     return texture; 
 } 
 
-Texture** load_textures() {
-    Texture **textures = calloc(TEXTURE_COUNT, sizeof(Texture*));
-    Texture *tmp;
+Texture_vector* load_textures() {
+    char *paths[] = {
+        "../assets/background.bmp",
+        "../assets/grass_floor.bmp",
+        "../assets/dirt_wall.bmp",
+        "../assets/stone_wall.bmp",
+        "../assets/megumin.bmp",
+        "../assets/wooden_floor.bmp",
+        "../assets/dirt_floor.bmp"
+    };
+    int size = sizeof(paths) / sizeof(char *);
+    Texture_vector *textures = malloc(sizeof(Texture_vector) + size * sizeof(Texture *));
+    textures->size = size;
 
-    tmp = load_texture_from_image("../assets/background.bmp");
-    if (tmp != NULL)
-        textures[0] = tmp;
-    else {
-        fprintf(stderr, "failed to load background.bmp\n");
-        exit(-1);
-    }
-    tmp = load_texture_from_image("../assets/grass_floor.bmp");
-    if (tmp != NULL)
-        textures[1] = tmp;
-    else {
-        fprintf(stderr, "failed to load grass_floor.bmp\n");
-        exit(-1);
-    }
-    tmp = load_texture_from_image("../assets/dirt_wall.bmp");
-    if (tmp != NULL)
-        textures[2] = tmp;
-    else {
-        fprintf(stderr, "failed to load dirt_wall.bmp\n");
-        exit(-1);
-    }
-    tmp = load_texture_from_image("../assets/stone_wall.bmp");
-    if (tmp != NULL)
-        textures[3] = tmp;
-    else {
-        fprintf(stderr, "failed to load stone_wall.bmp\n");
-        exit(-1);
-    }
-    tmp = load_texture_from_image("../assets/megumin.bmp");
-    if (tmp != NULL)
-        textures[4] = tmp;
-    else {
-        fprintf(stderr, "failed to load megumin.bmp\n");
-        exit(-1);
-    }
-    tmp = load_texture_from_image("../assets/wooden_floor.bmp");
-    if (tmp != NULL)
-        textures[5] = tmp;
-    else {
-        fprintf(stderr, "failed to load wooden_floor.bmp\n");
-        exit(-1);
+    for (int i = 0; i < textures->size; i++) {
+        Texture *tmp = load_texture_from_image(paths[i]);
+        if (tmp != NULL)
+            textures->el[i] = tmp;
+        else {
+            fprintf(stderr, "failed to load %s\n", paths[i]);
+            exit(-1);
+        }
     }
 
     return textures;
 }
 
-void unload_textures(Texture **textures) {
-    for (int i = 0; i < TEXTURE_COUNT; i++)
-        if (textures[i])
-            free(textures[i]);
+void unload_textures(Texture_vector *textures) {
+    for (int i = 0; i < textures->size; i++)
+        if (textures->el[i])
+            free(textures->el[i]);
     free(textures);
 }

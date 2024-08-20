@@ -8,6 +8,6 @@
 #include "texture.h"
 #include "map.h"
 
-void render(GLFWwindow *window, RGB frame_buffer[WINDOW_HEIGHT][WINDOW_WIDTH], Texture **loaded_textures, Player *player);
+void render(GLFWwindow *window, RGB frame_buffer[WINDOW_HEIGHT][WINDOW_WIDTH], Texture_vector *loaded_textures, Player *player);
 
 #endif

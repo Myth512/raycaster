@@ -5,7 +5,7 @@ int main() {
     GLFWwindow *window = window_create(&key_states);
 
     RGB frame_buffer[WINDOW_HEIGHT][WINDOW_WIDTH];
-    Texture **loaded_textures = load_textures();
+    Texture_vector *loaded_textures = load_textures();
 
     clock_t frame_start_tick = 0, frame_end_tick = 0;
     double frame_time = 0;
