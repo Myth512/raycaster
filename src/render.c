@@ -134,21 +134,36 @@ void draw_scene(RGB frame_buffer[WINDOW_HEIGHT][WINDOW_WIDTH], Texture_vector *l
 
         int wallHeight = WINDOW_HEIGHT / minDist; 
         int wallOffset = (WINDOW_HEIGHT - wallHeight) / 2;
+        int ceilingOffset = (WINDOW_HEIGHT + wallHeight) / 2;
 
         Texture *background = loaded_textures->el[0];
         int u = (background->width / (2*PI)) * rayAngle;
-
         draw_texture_line(frame_buffer, background, x, WINDOW_HEIGHT / 2, SCALE, WINDOW_HEIGHT / 2, u);
 
+        for (int y = ceilingOffset; y < WINDOW_HEIGHT; y++) {
+            double dist = (double)(WINDOW_HEIGHT - y) / (WINDOW_HEIGHT / 2 - (WINDOW_HEIGHT - y)) + 1;
+            dist /= cos(player->angle - rayAngle);
+            vec2 p;
+            p.x = player->pos.x + dist * cos(rayAngle);
+            p.y = player->pos.y + dist * sin(rayAngle);
+            int ceilingID = ceiling_map[(int)p.y][(int)p.x];
+            if (ceilingID == 0)
+                continue;
+            Texture *ceiling = decode_texture(loaded_textures, ceilingID);
+
+            u = fmod(p.x * ceiling->width, ceiling->width);
+            int v = fmod(p.y * ceiling->height, ceiling->height);
+            frame_buffer[y][x] = ceiling->bitmap[v][u];
+        }
+
         if (closestWallID >= 10) {
-            Texture *texture = decode_texture(loaded_textures, closestWallID);
-            u = fmod((rayPos.x + rayPos.y) * texture->width, texture->width);
-            draw_texture_line(frame_buffer, texture, x, wallOffset, SCALE, wallHeight, u);
+            Texture *wall = decode_texture(loaded_textures, closestWallID);
+            u = fmod((rayPos.x + rayPos.y) * wall->width, wall->width);
+            draw_texture_line(frame_buffer, wall, x, wallOffset, SCALE, wallHeight, u);
         } else {
             RGB color = decode_color(closestWallID);
             draw_line(frame_buffer, x, wallOffset, SCALE, wallHeight, color);
         }
-
 
         for (int y = 0; y < wallOffset; y++) {
             double dist = (double)y / (WINDOW_HEIGHT / 2 - y) + 1;
@@ -162,14 +177,6 @@ void draw_scene(RGB frame_buffer[WINDOW_HEIGHT][WINDOW_WIDTH], Texture_vector *l
             int v = fmod(rayPos.y * floor->height, floor->height);
             frame_buffer[y][x] = floor->bitmap[v][u];
         }
-
-        // for (int y = 100; x == WINDOW_WIDTH / 2 && y < wallOffset && y < 101; y++) {
-        //     double dist = (double)y / (WINDOW_HEIGHT / 2 - y);
-        //     printf("d: %f\n", dist);
-        //     u = fmod((dist) * floor->width, floor->width);
-        //     int v = fmod((dist) * floor->height, floor->height);
-        //     frame_buffer[y][x] = (RGB){255, 0, 0};
-        // }
 
         rayAngle += angleStep * SCALE;
     }
