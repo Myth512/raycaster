@@ -1,13 +1,13 @@
 #define WINDOW_WIDTH 1280
 #define WINDOW_HEIGHT 720
-#define MAP_WIDTH 10
-#define MAP_HEIGHT 10
+#define MAP_WIDTH 20
+#define MAP_HEIGHT 20
 #define SCALE 1
 #define MINIMAP_SCALE 16
-#define TEXTURE_COUNT 5
+#define TEXTURE_COUNT 10
 #define FOV 90
-#define MOVING_SPEED 3
-#define TURNING_SPEED 4
+#define MOVING_SPEED 5
+#define TURNING_SPEED 10
 #define PLAYER_SIZE 0.2
 #define PI 3.14159265359
 

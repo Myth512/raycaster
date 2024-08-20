@@ -74,18 +74,25 @@ Texture** load_textures() {
         fprintf(stderr, "failed to load background.bmp\n");
         exit(-1);
     }
-    tmp = load_texture_from_image("../assets/image.bmp");
+    tmp = load_texture_from_image("../assets/grass_floor.bmp");
+    if (tmp != NULL)
+        textures[1] = tmp;
+    else {
+        fprintf(stderr, "failed to load grass_floor.bmp\n");
+        exit(-1);
+    }
+    tmp = load_texture_from_image("../assets/dirt_wall.bmp");
     if (tmp != NULL)
         textures[2] = tmp;
     else {
-        fprintf(stderr, "failed to load image.bmp\n");
+        fprintf(stderr, "failed to load dirt_wall.bmp\n");
         exit(-1);
     }
-    tmp = load_texture_from_image("../assets/gradient.bmp");
+    tmp = load_texture_from_image("../assets/stone_wall.bmp");
     if (tmp != NULL)
         textures[3] = tmp;
     else {
-        fprintf(stderr, "failed to load gradient.bmp\n");
+        fprintf(stderr, "failed to load stone_wall.bmp\n");
         exit(-1);
     }
     tmp = load_texture_from_image("../assets/megumin.bmp");
@@ -95,12 +102,20 @@ Texture** load_textures() {
         fprintf(stderr, "failed to load megumin.bmp\n");
         exit(-1);
     }
+    tmp = load_texture_from_image("../assets/wooden_floor.bmp");
+    if (tmp != NULL)
+        textures[5] = tmp;
+    else {
+        fprintf(stderr, "failed to load wooden_floor.bmp\n");
+        exit(-1);
+    }
 
     return textures;
 }
 
 void unload_textures(Texture **textures) {
     for (int i = 0; i < TEXTURE_COUNT; i++)
-        free(textures[i]);
+        if (textures[i])
+            free(textures[i]);
     free(textures);
 }

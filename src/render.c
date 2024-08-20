@@ -143,13 +143,23 @@ void draw_scene(RGB frame_buffer[WINDOW_HEIGHT][WINDOW_WIDTH], Texture **loaded_
         if (closestWallID >= 10) {
             Texture *texture = decode_texture(loaded_textures, closestWallID);
             u = fmod((rayPos.x + rayPos.y) * texture->width, texture->width);
+            if (closestWallID == 13)
+                wallHeight *= 2;
             draw_texture_line(frame_buffer, texture, x, wallOffset, SCALE, wallHeight, u);
         } else {
             RGB color = decode_color(closestWallID);
             draw_line(frame_buffer, x, wallOffset, SCALE, wallHeight, color);
         }
 
-        draw_line(frame_buffer, x, 0, SCALE, wallOffset, COLOR_GROUND);
+
+        Texture *floor = loaded_textures[5];
+        for (int y = 0; y < wallOffset; y++) {
+            double dist = (double)y / (WINDOW_HEIGHT / 2 - y) + 1;
+            dist /= cos(player->angle - rayAngle);
+            u = fmod((player->pos.x + dist * cos(rayAngle)) * floor->width, floor->width);
+            int v = fmod((player->pos.y + dist * sin(rayAngle)) * floor->height, floor->height);
+            frame_buffer[y][x] = floor->bitmap[v][u];
+        }
 
         rayAngle += angleStep * SCALE;
     }
